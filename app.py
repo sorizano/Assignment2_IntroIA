@@ -1,6 +1,7 @@
 import streamlit as st
 from datetime import datetime
 import json
+import time  # Importar para manejar la espera de 10 segundos
 
 st.set_page_config(layout="wide")
 
@@ -86,6 +87,14 @@ if ingresado_pin and usuario_seleccionado in usuarios_en_casa:
         st.session_state["seguro"] = False
         st.session_state["forzado"] = False
         st.success(f"✅ Cerradura abierta correctamente por {usuario_seleccionado}")
+        
+        # Esperar 10 segundos antes de cerrar automáticamente
+        time.sleep(10)
+        
+        # Se vuelve a cerrar automáticamente
+        st.session_state["cerrado"] = True
+        st.session_state["seguro"] = True
+        st.warning("⏳ Cerradura cerrada automáticamente después de 10 segundos.")
         st.rerun()
     else:
         st.error("❌ PIN incorrecto")
