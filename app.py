@@ -45,7 +45,7 @@ st.title("Simulación de Cerradura Digital Inteligente")
 
 # Simulación de alerta por intento no autorizado
 top_alert = ""
-if not cerradura_estado["cerrado"] and not cerradura_estado["seguro"]:
+if cerradura_estado["cerrado"] and cerradura_estado["seguro"]:
     top_alert = """
     <h2 style='text-align: center; color: red; font-weight: bold;'>
     ¡Alerta! Intento de apertura no autorizado se ha reportado al Administrador
@@ -58,11 +58,11 @@ col_estado1, col_estado2 = st.columns(2)
 with col_estado1:
     st.markdown(f"""
         <h2 style='text-align: center;'>Estado de la Cerradura</h2>
-        <h1 style='text-align: center;'>Cerrado: <span style='color:{'green' if not cerradura_estado['cerrado'] else 'red'}; font-weight: bold;'>{'Sí' if cerradura_estado['cerrado'] else 'No'}</span></h1>
+        <h1 style='text-align: center;'>Cerrado: <span style='color:{'green' if cerradura_estado['cerrado'] else 'red'}; font-weight: bold;'>{'Sí' if cerradura_estado['cerrado'] else 'No'}</span></h1>
     """, unsafe_allow_html=True)
 with col_estado2:
     st.markdown(f"""
-        <h1 style='text-align: center;'>Seguro: <span style='color:{'green' if not cerradura_estado['seguro'] else 'red'}; font-weight: bold;'>{'Sí' if cerradura_estado['seguro'] else 'No'}</span></h1>
+        <h1 style='text-align: center;'>Seguro: <span style='color:{'green' if cerradura_estado['seguro'] else 'red'}; font-weight: bold;'>{'Sí' if cerradura_estado['seguro'] else 'No'}</span></h1>
     """, unsafe_allow_html=True)
 
 # Control de Hora
@@ -109,11 +109,13 @@ with col2:
 with col3:
     st.header("Forzar Apertura")
     if st.button("Forzar Apertura de Cerradura"):
-        cerradura_estado["cerrado"] = False
-        st.warning("Cerradura forzada manualmente")
+        cerradura_estado["cerrado"] = True
+        cerradura_estado["seguro"] = True
+        st.warning("Cerradura y seguro forzados manualmente")
     if st.button("Forzar Apertura de Seguro"):
-        cerradura_estado["seguro"] = False
-        st.warning("Seguro forzado manualmente")
+        cerradura_estado["cerrado"] = True
+        cerradura_estado["seguro"] = True
+        st.warning("Cerradura y seguro forzados manualmente")
 
 st.subheader("Registro de Estado")
 st.json(cerradura_estado)
