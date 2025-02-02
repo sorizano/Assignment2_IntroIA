@@ -39,18 +39,17 @@ ubicaciones = {
 
 st.title("Simulación de Cerradura Digital Inteligente")
 
-# Control de Hora
-hora_editable = st.sidebar.time_input("Selecciona la hora", datetime.strptime(st.session_state["hora_actual"], "%H:%M").time())
-st.session_state["hora_actual"] = hora_editable.strftime("%H:%M")
-
 # Forzar apertura siempre disponible
-st.header("Forzar Apertura")
 if st.button("Forzar Apertura"):
     st.session_state["cerrado"] = False
     st.session_state["seguro"] = False
     st.session_state["forzado"] = True
     st.warning("Cerradura y seguro forzados manualmente")
     st.rerun()
+
+# Control de Hora
+hora_editable = st.sidebar.time_input("Selecciona la hora", datetime.strptime(st.session_state["hora_actual"], "%H:%M").time())
+st.session_state["hora_actual"] = hora_editable.strftime("%H:%M")
 
 # Evaluación de cierre y seguro según la hora (Prioridad Alta)
 hora_actual_horas = int(st.session_state["hora_actual"].split(":")[0])
