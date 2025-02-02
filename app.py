@@ -104,14 +104,11 @@ with col2:
 
 with col3:
     st.header("Forzar Apertura")
-    if st.button("Forzar Apertura de Cerradura"):
+    if st.button("Forzar Apertura"):
         st.session_state["cerrado"] = False
-        st.session_state["forzado"] = True
-        st.warning("Cerradura forzada manualmente")
-    if st.button("Forzar Apertura de Seguro"):
         st.session_state["seguro"] = False
         st.session_state["forzado"] = True
-        st.warning("Seguro forzado manualmente")
+        st.warning("Cerradura y seguro forzados manualmente")
 
 st.subheader("Registro de Estado")
 st.json(st.session_state)
