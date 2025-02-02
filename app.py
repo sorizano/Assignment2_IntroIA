@@ -1,7 +1,7 @@
 import streamlit as st
 import time
 from datetime import datetime
-import random
+import json
 
 st.set_page_config(layout="wide")
 
@@ -9,11 +9,7 @@ st.set_page_config(layout="wide")
 cerradura_estado = {
     "cerrado": True,
     "seguro": False,
-    "usuarios": {
-        "mama": "1234",
-        "papa": "5678",
-        "hijo": "9012"
-    },
+    "usuarios": {},
     "celulares": {
         "Cel_mon": 0,
         "Cel_father": 0,
@@ -22,25 +18,42 @@ cerradura_estado = {
     "hora_actual": datetime.now().strftime("%H:%M")
 }
 
+# Cargar usuarios desde un archivo JSON
+def cargar_usuarios():
+    try:
+        with open("usuarios.json", "r") as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return {"mama": "1234", "papa": "5678", "hijo": "9012"}
+
+cerradura_estado["usuarios"] = cargar_usuarios()
+
+# Guardar usuarios en archivo JSON
+def guardar_usuarios():
+    with open("usuarios.json", "w") as file:
+        json.dump(cerradura_estado["usuarios"], file)
+
 # Definir ubicaciones y distancias
 ubicaciones = {
     "Casa": 0,
-    "Lavandería": 2.0,
-    "Mall": 1.6,
-    "Farmacia": 1.2
+    "Lavandería - 2km": 2.0,
+    "Mall - 1.6km": 1.6,
+    "Farmacia - 1.2km": 1.2
 }
 
 st.title("Simulación de Cerradura Digital Inteligente")
 
-# Estado de la cerradura en grande
-st.markdown("""
-    <h2 style='text-align: center;'>Estado de la Cerradura</h2>
-    <h1 style='text-align: center;'>Cerrado: <span style='color:{}; font-weight: bold;'>{}</span></h1>
-    <h1 style='text-align: center;'>Seguro: <span style='color:{}; font-weight: bold;'>{}</span></h1>
-""".format(
-    "red" if cerradura_estado["cerrado"] else "green", "Sí" if cerradura_estado["cerrado"] else "No",
-    "red" if cerradura_estado["seguro"] else "green", "Sí" if cerradura_estado["seguro"] else "No"
-), unsafe_allow_html=True)
+# Estado de la cerradura en dos columnas
+col_estado1, col_estado2 = st.columns(2)
+with col_estado1:
+    st.markdown(f"""
+        <h2 style='text-align: center;'>Estado de la Cerradura</h2>
+        <h1 style='text-align: center;'>Cerrado: <span style='color:{'green' if not cerradura_estado['cerrado'] else 'red'}; font-weight: bold;'>{'Sí' if cerradura_estado['cerrado'] else 'No'}</span></h1>
+    """, unsafe_allow_html=True)
+with col_estado2:
+    st.markdown(f"""
+        <h1 style='text-align: center;'>Seguro: <span style='color:{'green' if not cerradura_estado['seguro'] else 'red'}; font-weight: bold;'>{'Sí' if cerradura_estado['seguro'] else 'No'}</span></h1>
+    """, unsafe_allow_html=True)
 
 col1, col2, col3 = st.columns(3)
 
@@ -56,12 +69,20 @@ with col2:
         cerradura_estado["celulares"][celular] = st.selectbox(f"Ubicación de {celular}", options=list(ubicaciones.keys()), index=0)
 
 with col3:
-    st.header("Usuarios y PINs")
-    usuarios = cerradura_estado["usuarios"]
-    for user, pin in usuarios.items():
-        st.text(f"{user}: {pin}")
-    ingresado_pin = st.text_input("Ingrese PIN", type="password")
-    if ingresado_pin in usuarios.values():
+    st.header("Gestión de Usuarios")
+    st.write("Registro de usuarios en archivo")
+    nuevo_usuario = st.text_input("Nuevo usuario")
+    nuevo_pin = st.text_input("PIN", type="password")
+    if st.button("Registrar Usuario"):
+        if nuevo_usuario and nuevo_pin:
+            cerradura_estado["usuarios"][nuevo_usuario] = nuevo_pin
+            guardar_usuarios()
+            st.success(f"Usuario {nuevo_usuario} registrado con éxito")
+        else:
+            st.error("Ingrese usuario y PIN")
+    
+    ingresado_pin = st.text_input("Ingrese PIN para abrir", type="password")
+    if ingresado_pin in cerradura_estado["usuarios"].values():
         cerradura_estado["cerrado"] = False
         cerradura_estado["seguro"] = False
         st.success("Cerradura abierta correctamente")
@@ -89,7 +110,7 @@ elif cerradura_estado["hora_actual"] == "22:00":
     cerradura_estado["seguro"] = True
 
 # Simulación de alerta por intento no autorizado
-if not cerradura_estado["cerrado"] and ingresado_pin not in usuarios.values():
+if not cerradura_estado["cerrado"] and ingresado_pin not in cerradura_estado["usuarios"].values():
     st.warning("¡Alerta! Intento de apertura no autorizado")
 
 st.subheader("Registro de Estado")
