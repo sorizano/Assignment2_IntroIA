@@ -43,7 +43,7 @@ if st.button("Forzar Apertura"):
     st.session_state["cerrado"] = False
     st.session_state["seguro"] = False
     st.session_state["forzado"] = True
-    st.warning("Cerradura y seguro forzados manualmente")
+    st.error("⚠️ ¡Alerta! Cerradura y seguro forzados. Se ha enviado un mensaje al administrador.")
     st.rerun()
 
 # Evaluación de cierre y seguro según la hora (Prioridad Alta, pero ejecutada DESPUÉS de forzar apertura)
@@ -73,7 +73,7 @@ with col_estado2:
 
 # Mostrar alerta si se cumple la condición
 if mostrar_alerta:
-    st.error("¡Alerta! Intento de apertura no autorizado se ha reportado al Administrador")
+    st.error("⚠️ ¡Alerta! Intento de apertura no autorizado. Se ha reportado al Administrador.")
 
 # Control de Hora
 hora_editable = st.sidebar.time_input("Selecciona la hora", datetime.strptime(st.session_state["hora_actual"], "%H:%M").time())
