@@ -43,6 +43,19 @@ ubicaciones = {
 
 st.title("Simulación de Cerradura Digital Inteligente")
 
+# Control de Hora
+hora_editable = st.sidebar.time_input("Selecciona la hora", datetime.strptime(cerradura_estado["hora_actual"], "%H:%M").time())
+cerradura_estado["hora_actual"] = hora_editable.strftime("%H:%M")
+
+# Evaluación de cierre y seguro según la hora
+hora_actual_horas = int(cerradura_estado["hora_actual"].split(":")[0])
+if 22 <= hora_actual_horas or hora_actual_horas < 6:
+    cerradura_estado["cerrado"] = True
+    cerradura_estado["seguro"] = True
+else:
+    cerradura_estado["cerrado"] = False
+    cerradura_estado["seguro"] = False
+
 # Simulación de alerta por intento no autorizado
 top_alert = ""
 if cerradura_estado["cerrado"] and cerradura_estado["seguro"]:
@@ -58,30 +71,15 @@ col_estado1, col_estado2 = st.columns(2)
 with col_estado1:
     st.markdown(f"""
         <h2 style='text-align: center;'>Estado de Cerradura</h2>
-        <h1 style='text-align: center;'>
-        <span style='color:{'red' if cerradura_estado['cerrado'] else 'green'}; font-weight: bold;'>
-        {'Cerrado' if cerradura_estado['cerrado'] else 'Abierto'}</span></h1>
+        <h1 style='text-align: center; color:{'red' if cerradura_estado['cerrado'] else 'green'}; font-weight: bold;'>
+        {'Cerrado' if cerradura_estado['cerrado'] else 'Abierto'}</h1>
     """, unsafe_allow_html=True)
 with col_estado2:
     st.markdown(f"""
         <h2 style='text-align: center;'>Estado de Seguro</h2>
-        <h1 style='text-align: center;'>
-        <span style='color:{'red' if cerradura_estado['seguro'] else 'green'}; font-weight: bold;'>
-        {'Cerrado' if cerradura_estado['seguro'] else 'Abierto'}</span></h1>
+        <h1 style='text-align: center; color:{'red' if cerradura_estado['seguro'] else 'green'}; font-weight: bold;'>
+        {'Cerrado' if cerradura_estado['seguro'] else 'Abierto'}</h1>
     """, unsafe_allow_html=True)
-
-# Control de Hora
-hora_editable = st.sidebar.time_input("Selecciona la hora", datetime.strptime(cerradura_estado["hora_actual"], "%H:%M").time())
-cerradura_estado["hora_actual"] = hora_editable.strftime("%H:%M")
-
-# Evaluación de cierre y seguro según la hora
-hora_actual_horas = int(cerradura_estado["hora_actual"].split(":")[0])
-if 22 <= hora_actual_horas or hora_actual_horas < 6:
-    cerradura_estado["cerrado"] = True
-    cerradura_estado["seguro"] = True
-else:
-    cerradura_estado["cerrado"] = False
-    cerradura_estado["seguro"] = False
 
 col1, col2, col3 = st.columns(3)
 
@@ -104,19 +102,19 @@ with col2:
             st.error("Ingrese usuario y PIN")
     
     ingresado_pin = st.text_input("Ingrese PIN para abrir", type="password")
-    if ingresado_pin in cerradura_estado["usuarios"].values():
+    if ingresado_pin in cerradura_estado["usuarios"].values() and not (22 <= hora_actual_horas or hora_actual_horas < 6):
         cerradura_estado["cerrado"] = False
         cerradura_estado["seguro"] = False
         st.success("Cerradura abierta correctamente")
     elif ingresado_pin:
-        st.error("PIN incorrecto")
+        st.error("PIN incorrecto o no se puede abrir en este horario")
 
 with col3:
     st.header("Forzar Apertura")
-    if st.button("Forzar Apertura de Cerradura"):
+    if st.button("Forzar Apertura de Cerradura") and not (22 <= hora_actual_horas or hora_actual_horas < 6):
         cerradura_estado["cerrado"] = False
         st.warning("Cerradura forzada manualmente")
-    if st.button("Forzar Apertura de Seguro"):
+    if st.button("Forzar Apertura de Seguro") and not (22 <= hora_actual_horas or hora_actual_horas < 6):
         cerradura_estado["seguro"] = False
         st.warning("Seguro forzado manualmente")
 
