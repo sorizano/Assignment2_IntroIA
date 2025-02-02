@@ -10,7 +10,7 @@ if "cerrado" not in st.session_state:
 if "seguro" not in st.session_state:
     st.session_state["seguro"] = True
 if "forzado" not in st.session_state:
-    st.session_state["forzado"] = False  # ✅ Nuevo control para bloquear todo
+    st.session_state["forzado"] = False
 if "hora_actual" not in st.session_state:
     st.session_state["hora_actual"] = datetime.now().strftime("%H:%M")
 if "ubicaciones_usuarios" not in st.session_state:
@@ -41,7 +41,7 @@ st.title("Simulación de Cerradura Digital Inteligente")
 # 🔴 Si la cerradura ha sido forzada, deshabilitar todo
 desactivar_todo = st.session_state["forzado"]
 
-# ⏰ Control de Hora en la barra lateral (Deshabilitado si la cerradura fue forzada)
+# ⏰ Control de Hora en la barra lateral
 hora_editable = st.sidebar.time_input("Selecciona la hora", datetime.strptime(st.session_state["hora_actual"], "%H:%M").time(), disabled=desactivar_todo)
 st.session_state["hora_actual"] = hora_editable.strftime("%H:%M")
 
@@ -66,7 +66,7 @@ with col_left:
             f"Ubicación de {usuario}",
             options=list(ubicaciones.keys()),
             key=f"ubicacion_{usuario}",
-            disabled=desactivar_todo  # 🔴 Bloquear si la cerradura fue forzada
+            disabled=desactivar_todo
         )
         st.session_state["ubicaciones_usuarios"][usuario] = ubicacion
         distancia_actual = ubicaciones[ubicacion]
@@ -108,7 +108,7 @@ col_boton1, col_boton2, col_boton3 = st.columns(3)
 
 # ✅ **Botón para validar PIN y abrir la cerradura**
 with col_boton1:
-    if st.button("🔓 Abrir Casa", disabled=desactivar_todo):  # ❌ Deshabilitado si se usó "Forzar Apertura"
+    if st.button("🔓 Abrir Casa", disabled=desactivar_todo):
         if ingresado_pin and usuario_seleccionado in usuarios_en_casa:
             if ingresado_pin == usuarios[usuario_seleccionado]:
                 st.session_state["cerrado"] = False
@@ -122,21 +122,27 @@ with col_boton1:
         elif ingresado_pin:
             st.error("❌ Solo los usuarios en casa pueden ingresar su PIN.")
 
-# ✅ **Botón para cerrar la puerta (Solo si el PIN fue correcto)**
+# ✅ **Botón para cerrar la puerta (Con regla nocturna)**
 with col_boton2:
     if st.button("🔒 Cerrar Puerta", disabled=desactivar_todo or not st.session_state["pin_correcto"]):
-        st.session_state["cerrado"] = True
-        st.session_state["seguro"] = False
-        st.session_state["pin_correcto"] = False
-        st.warning("🚪 La puerta ha sido cerrada, pero el seguro sigue abierto.")
+        if 22 <= hora_actual_horas or hora_actual_horas < 6:
+            st.session_state["cerrado"] = True
+            st.session_state["seguro"] = True
+            st.warning("🌙 Cerradura y seguro cerrados automáticamente por horario nocturno (10 PM - 6 AM).")
+        else:
+            st.session_state["cerrado"] = True
+            st.session_state["seguro"] = False
+            st.warning("🚪 La puerta ha sido cerrada, pero el seguro sigue abierto.")
+
+        st.session_state["pin_correcto"] = False  # Resetear validación del PIN
 
 # 🔓 **Botón para Forzar Apertura Manual**
 with col_boton3:
     if st.button("🔓 Forzar Apertura", disabled=desactivar_todo):
         st.session_state["cerrado"] = False
         st.session_state["seguro"] = False
-        st.session_state["forzado"] = True  # ✅ Activar el bloqueo total
-        st.session_state["mensaje_alerta"] = "⚠️ ¡Alerta! Cerradura y seguro forzados. Se ha enviado un mensaje al administrador."
+        st.session_state["forzado"] = True
+        st.session_state["mensaje_alerta"] = "⚠️ ¡Alerta! Cerradura y seguro forzados. TODA la funcionalidad ha sido desactivada."
         st.rerun()  # 🔄 Fuerza la recarga inmediata de la interfaz
 
 # 🔴 **Mostrar el mensaje de alerta si la cerradura fue forzada**
