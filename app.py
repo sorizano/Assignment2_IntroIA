@@ -43,6 +43,19 @@ ubicaciones = {
 
 st.title("Simulación de Cerradura Digital Inteligente")
 
+# Control de Hora
+hora_editable = st.sidebar.time_input("Selecciona la hora", datetime.strptime(cerradura_estado["hora_actual"], "%H:%M").time())
+cerradura_estado["hora_actual"] = hora_editable.strftime("%H:%M")
+
+# Evaluación de cierre y seguro según la hora
+hora_actual_horas = int(cerradura_estado["hora_actual"].split(":")[0])
+if 22 <= hora_actual_horas or hora_actual_horas < 6:
+    cerradura_estado["cerrado"] = True
+    cerradura_estado["seguro"] = True
+else:
+    cerradura_estado["cerrado"] = False
+    cerradura_estado["seguro"] = False
+
 # Estado de la cerradura en dos columnas
 col_estado1, col_estado2 = st.columns(2)
 with col_estado1:
@@ -58,24 +71,11 @@ with col_estado2:
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.header("Control de Hora")
-    hora_editable = st.time_input("Selecciona la hora", datetime.strptime(cerradura_estado["hora_actual"], "%H:%M").time())
-    cerradura_estado["hora_actual"] = hora_editable.strftime("%H:%M")
-    st.text(f"Hora actual: {cerradura_estado['hora_actual']}")
-
-# Evaluación de cierre y seguro
-hora_actual_horas = int(cerradura_estado["hora_actual"].split(":")[0])
-if 22 <= hora_actual_horas or hora_actual_horas < 6:
-    cerradura_estado["cerrado"] = True
-    cerradura_estado["seguro"] = True
-    st.experimental_rerun()
-
-with col2:
     st.header("Ubicación de Celulares")
     for celular in cerradura_estado["celulares"].keys():
         cerradura_estado["celulares"][celular] = st.selectbox(f"Ubicación de {celular}", options=list(ubicaciones.keys()), index=0)
 
-with col3:
+with col2:
     st.header("Gestión de Usuarios")
     st.write("Registro de usuarios en archivo")
     nuevo_usuario = st.text_input("Nuevo usuario")
