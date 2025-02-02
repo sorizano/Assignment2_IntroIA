@@ -9,7 +9,7 @@ st.set_page_config(layout="wide")
 if "cerrado" not in st.session_state:
     st.session_state["cerrado"] = True
 if "seguro" not in st.session_state:
-    st.session_state["seguro"] = False
+    st.session_state["seguro"] = True  # Asegurar que empiece cerrado por defecto
 if "forzado" not in st.session_state:
     st.session_state["forzado"] = False
 if "hora_actual" not in st.session_state:
@@ -99,6 +99,7 @@ with col2:
         st.session_state["seguro"] = False
         st.session_state["forzado"] = False  # No se considera forzado si se ingresó correctamente
         st.success("Cerradura abierta correctamente")
+        st.rerun()
     elif ingresado_pin:
         st.error("PIN incorrecto")
 
@@ -109,6 +110,7 @@ with col3:
         st.session_state["seguro"] = False
         st.session_state["forzado"] = True
         st.warning("Cerradura y seguro forzados manualmente")
+        st.rerun()
 
 st.subheader("Registro de Estado")
 st.json(st.session_state)
