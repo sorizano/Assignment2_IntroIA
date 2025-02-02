@@ -13,8 +13,8 @@ if "forzado" not in st.session_state:
     st.session_state["forzado"] = False
 if "hora_actual" not in st.session_state:
     st.session_state["hora_actual"] = datetime.now().strftime("%H:%M")
-if "distancia_max" not in st.session_state:
-    st.session_state["distancia_max"] = 0
+if "ubicaciones_usuarios" not in st.session_state:
+    st.session_state["ubicaciones_usuarios"] = {}
 
 # Función para cargar usuarios predefinidos
 def cargar_usuarios():
@@ -52,13 +52,20 @@ col_left, col_right = st.columns(2)
 with col_left:
     st.header("Ubicación de Celulares")
     distancias = []
-    for celular in ["Cel_mon", "Cel_father", "Cel_son"]:
+    usuarios_en_casa = []
+
+    for usuario in usuarios.keys():
         ubicacion = st.selectbox(
-            f"Ubicación de {celular}",
+            f"Ubicación de {usuario}",
             options=list(ubicaciones.keys()),
-            key=celular
+            key=f"ubicacion_{usuario}"
         )
+        st.session_state["ubicaciones_usuarios"][usuario] = ubicacion
         distancias.append(ubicaciones[ubicacion])
+
+        if ubicacion == "Casa":
+            usuarios_en_casa.append(usuario)  # Guardamos usuarios en casa
+    
     st.session_state["distancia_max"] = max(distancias)
 
 # --------------------------
@@ -66,18 +73,24 @@ with col_left:
 # --------------------------
 with col_right:
     st.header("Autenticación de Usuario")
+    
+    # Seleccionar el usuario que intenta ingresar su PIN
+    usuario_seleccionado = st.selectbox("Seleccione su usuario:", usuarios_en_casa if usuarios_en_casa else ["(Nadie en casa)"])
+    
     ingresado_pin = st.text_input("Ingrese PIN para abrir", type="password", key="pin_input")
 
 # Evaluación de apertura con PIN
-if ingresado_pin:
-    if ingresado_pin in usuarios.values():
+if ingresado_pin and usuario_seleccionado in usuarios_en_casa:
+    if ingresado_pin == usuarios[usuario_seleccionado]:
         st.session_state["cerrado"] = False
         st.session_state["seguro"] = False
         st.session_state["forzado"] = False
-        st.success("✅ Cerradura abierta correctamente mediante PIN")
+        st.success(f"✅ Cerradura abierta correctamente por {usuario_seleccionado}")
         st.rerun()
     else:
         st.error("❌ PIN incorrecto")
+elif ingresado_pin:
+    st.error("❌ Solo los usuarios en casa pueden ingresar su PIN.")
 
 # Evaluación en función de la hora y ubicación (si no se usó PIN)
 elif not st.session_state["forzado"]:
