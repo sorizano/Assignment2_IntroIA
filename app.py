@@ -58,11 +58,11 @@ col_estado1, col_estado2 = st.columns(2)
 with col_estado1:
     st.markdown(f"""
         <h2 style='text-align: center;'>Estado de la Cerradura</h2>
-        <h1 style='text-align: center;'>Cerrado: <span style='color:{'green' if cerradura_estado['cerrado'] else 'red'}; font-weight: bold;'>{'Sí' if cerradura_estado['cerrado'] else 'No'}</span></h1>
+        <h1 style='text-align: center;'>Cerrado: <span style='color:{'red' if not cerradura_estado['cerrado'] else 'green'}; font-weight: bold;'>{'No' if not cerradura_estado['cerrado'] else 'Sí'}</span></h1>
     """, unsafe_allow_html=True)
 with col_estado2:
     st.markdown(f"""
-        <h1 style='text-align: center;'>Seguro: <span style='color:{'green' if cerradura_estado['seguro'] else 'red'}; font-weight: bold;'>{'Sí' if cerradura_estado['seguro'] else 'No'}</span></h1>
+        <h1 style='text-align: center;'>Seguro: <span style='color:{'red' if not cerradura_estado['seguro'] else 'green'}; font-weight: bold;'>{'No' if not cerradura_estado['seguro'] else 'Sí'}</span></h1>
     """, unsafe_allow_html=True)
 
 # Control de Hora
@@ -109,12 +109,12 @@ with col2:
 with col3:
     st.header("Forzar Apertura")
     if st.button("Forzar Apertura de Cerradura"):
-        cerradura_estado["cerrado"] = True
-        cerradura_estado["seguro"] = True
+        cerradura_estado["cerrado"] = False
+        cerradura_estado["seguro"] = False
         st.warning("Cerradura y seguro forzados manualmente")
     if st.button("Forzar Apertura de Seguro"):
-        cerradura_estado["cerrado"] = True
-        cerradura_estado["seguro"] = True
+        cerradura_estado["cerrado"] = False
+        cerradura_estado["seguro"] = False
         st.warning("Cerradura y seguro forzados manualmente")
 
 st.subheader("Registro de Estado")
