@@ -43,7 +43,16 @@ st.title("Simulación de Cerradura Digital Inteligente")
 hora_editable = st.sidebar.time_input("Selecciona la hora", datetime.strptime(st.session_state["hora_actual"], "%H:%M").time())
 st.session_state["hora_actual"] = hora_editable.strftime("%H:%M")
 
-# Evaluación de cierre y seguro según la hora
+# Forzar apertura siempre disponible
+st.header("Forzar Apertura")
+if st.button("Forzar Apertura"):
+    st.session_state["cerrado"] = False
+    st.session_state["seguro"] = False
+    st.session_state["forzado"] = True
+    st.warning("Cerradura y seguro forzados manualmente")
+    st.rerun()
+
+# Evaluación de cierre y seguro según la hora (Prioridad Alta)
 hora_actual_horas = int(st.session_state["hora_actual"].split(":")[0])
 if 22 <= hora_actual_horas or hora_actual_horas < 6:
     st.session_state["cerrado"] = True
@@ -73,7 +82,7 @@ with col_estado2:
         {'Cerrado' if st.session_state['seguro'] else 'Abierto'}</h1>
     """, unsafe_allow_html=True)
 
-col1, col2, col3 = st.columns(3)
+col1, col2 = st.columns(2)
 
 with col1:
     st.header("Ubicación de Celulares")
@@ -94,23 +103,14 @@ with col2:
             st.error("Ingrese usuario y PIN")
     
     ingresado_pin = st.text_input("Ingrese PIN para abrir", type="password")
-    if ingresado_pin in usuarios.values():
+    if ingresado_pin in usuarios.values() and not (22 <= hora_actual_horas or hora_actual_horas < 6):
         st.session_state["cerrado"] = False
         st.session_state["seguro"] = False
         st.session_state["forzado"] = False  # No se considera forzado si se ingresó correctamente
         st.success("Cerradura abierta correctamente")
         st.rerun()
     elif ingresado_pin:
-        st.error("PIN incorrecto")
-
-with col3:
-    st.header("Forzar Apertura")
-    if st.button("Forzar Apertura"):
-        st.session_state["cerrado"] = False
-        st.session_state["seguro"] = False
-        st.session_state["forzado"] = True
-        st.warning("Cerradura y seguro forzados manualmente")
-        st.rerun()
+        st.error("PIN incorrecto o no permitido en este horario")
 
 st.subheader("Registro de Estado")
 st.json(st.session_state)
