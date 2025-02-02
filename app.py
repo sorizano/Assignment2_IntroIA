@@ -1,10 +1,11 @@
 import streamlit as st
 from datetime import datetime
 import json
+import time
 
 st.set_page_config(layout="wide")
 
-# 🔄 Inicialización del estado en sesión
+# Inicialización del estado en sesión
 if "cerrado" not in st.session_state:
     st.session_state["cerrado"] = True
 if "seguro" not in st.session_state:
@@ -15,14 +16,16 @@ if "hora_actual" not in st.session_state:
     st.session_state["hora_actual"] = datetime.now().strftime("%H:%M")
 if "ubicaciones_usuarios" not in st.session_state:
     st.session_state["ubicaciones_usuarios"] = {}
+if "temporizador" not in st.session_state:
+    st.session_state["temporizador"] = None
 
-# 📌 Función para cargar usuarios predefinidos
+# Función para cargar usuarios predefinidos
 def cargar_usuarios():
     return {"mama": "1234", "papa": "5678", "hijo": "9012"}
 
 usuarios = cargar_usuarios()
 
-# 📌 Definición de ubicaciones y distancias
+# Definición de ubicaciones y distancias
 ubicaciones = {
     "Casa": 0,
     "Lavandería - 2km": 2.0,
@@ -34,20 +37,20 @@ ubicaciones = {
 
 st.title("Simulación de Cerradura Digital Inteligente")
 
-# ⏰ Control de Hora en la barra lateral
+# Control de Hora en la barra lateral
 hora_editable = st.sidebar.time_input("Selecciona la hora", datetime.strptime(st.session_state["hora_actual"], "%H:%M").time())
 st.session_state["hora_actual"] = hora_editable.strftime("%H:%M")
 
-# 📌 Mostrar los usuarios registrados y sus PINs en la barra lateral
+# Mostrar los usuarios registrados y sus PINs en un cuadro en la barra lateral
 st.sidebar.markdown("### Usuarios Registrados")
 usuarios_texto = "\n".join([f"**{usuario}**: {pin}" for usuario, pin in usuarios.items()])
 st.sidebar.text_area("Usuarios y PINs", usuarios_texto, height=100, disabled=True)
 
-# 🔄 Dividimos la interfaz en dos columnas principales
+# Dividimos la interfaz en dos columnas principales
 col_left, col_right = st.columns(2)
 
 # --------------------------
-# 📌 Columna Izquierda: Ubicación de Celulares
+# Columna Izquierda: Ubicación de Celulares
 # --------------------------
 with col_left:
     st.header("Ubicación de Celulares")
@@ -69,7 +72,7 @@ with col_left:
     st.session_state["distancia_max"] = max(distancias)
 
 # --------------------------
-# 📌 Columna Derecha: Autenticación por PIN
+# Columna Derecha: Autenticación por PIN
 # --------------------------
 with col_right:
     st.header("Autenticación de Usuario")
@@ -79,27 +82,56 @@ with col_right:
     
     ingresado_pin = st.text_input("Ingrese PIN para abrir", type="password", key="pin_input")
 
-    # 🔓 **Botón Abrir Casa**
-    if st.button("🔓 Abrir Casa"):
-        if ingresado_pin and usuario_seleccionado in usuarios_en_casa:
-            if ingresado_pin == usuarios[usuario_seleccionado]:
-                st.session_state["cerrado"] = False
-                st.session_state["seguro"] = False
-                st.session_state["forzado"] = False
-                st.success(f"✅ Cerradura abierta correctamente por {usuario_seleccionado}")
-            else:
-                st.error("❌ PIN incorrecto")
-        else:
-            st.error("❌ Solo los usuarios en casa pueden ingresar su PIN.")
+# Evaluación de apertura con PIN
+if ingresado_pin and usuario_seleccionado in usuarios_en_casa:
+    if ingresado_pin == usuarios[usuario_seleccionado]:
+        st.session_state["cerrado"] = False
+        st.session_state["seguro"] = False
+        st.session_state["forzado"] = False
+        st.session_state["temporizador"] = time.time()  # Iniciar temporizador
+        st.success(f"✅ Cerradura abierta correctamente por {usuario_seleccionado}")
+    else:
+        st.error("❌ PIN incorrecto")
+elif ingresado_pin:
+    st.error("❌ Solo los usuarios en casa pueden ingresar su PIN.")
 
-# 🔒 **Botón Cerrar Puerta** (Solo se habilita si la puerta está abierta)
-if st.button("🔒 Cerrar Puerta", disabled=st.session_state["cerrado"]):
-    st.session_state["cerrado"] = True
-    st.session_state["seguro"] = True
-    st.success("🔒 Cerradura cerrada manualmente.")
+# Control de tiempo para cerrar automáticamente después de 10 segundos
+if st.session_state["temporizador"]:
+    tiempo_transcurrido = time.time() - st.session_state["temporizador"]
+    if tiempo_transcurrido >= 10:
+        st.session_state["cerrado"] = True
+        st.session_state["seguro"] = True
+        st.session_state["temporizador"] = None  # Resetear temporizador
+        st.warning("⏳ Cerradura cerrada automáticamente después de 10 segundos.")
+
+# Evaluación en función de la hora y ubicación (si no se usó PIN)
+elif not st.session_state["forzado"]:
+    hora_actual_horas = int(st.session_state["hora_actual"].split(":")[0])
+    
+    if 22 <= hora_actual_horas or hora_actual_horas < 6:
+        st.session_state["cerrado"] = True
+        st.session_state["seguro"] = True
+    else:
+        if min(distancias) >= 1.5:
+            st.session_state["cerrado"] = True
+            st.session_state["seguro"] = True
+        else:
+            st.session_state["cerrado"] = True
+            st.session_state["seguro"] = False
+
+# Botón para Forzar Apertura Manual
+if st.button("🔓 Forzar Apertura"):
+    st.session_state["cerrado"] = False
+    st.session_state["seguro"] = False
+    st.session_state["forzado"] = True
+    st.session_state["temporizador"] = time.time()  # Iniciar temporizador al forzar apertura
+    st.markdown(
+        "<h3 style='text-align: center; color: red;'>⚠️ ¡Alerta! Cerradura y seguro forzados. Se ha enviado un mensaje al administrador.</h3>",
+        unsafe_allow_html=True
+    )
 
 # --------------------------
-# 📌 Estado de la cerradura
+# Estado de la cerradura
 # --------------------------
 col_estado1, col_estado2 = st.columns(2)
 with col_estado1:
