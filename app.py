@@ -99,21 +99,21 @@ with col2:
             st.error("Ingrese usuario y PIN")
     
     ingresado_pin = st.text_input("Ingrese PIN para abrir", type="password")
-    if ingresado_pin in cerradura_estado["usuarios"].values() and not (22 <= hora_actual_horas or hora_actual_horas < 6):
+    if ingresado_pin in cerradura_estado["usuarios"].values():
         cerradura_estado["cerrado"] = False
         cerradura_estado["seguro"] = False
         cerradura_estado["forzado"] = False  # No se considera forzado si se ingresó correctamente
         st.success("Cerradura abierta correctamente")
     elif ingresado_pin:
-        st.error("PIN incorrecto o no se puede abrir en este horario")
+        st.error("PIN incorrecto")
 
 with col3:
     st.header("Forzar Apertura")
-    if st.button("Forzar Apertura de Cerradura") and not (22 <= hora_actual_horas or hora_actual_horas < 6):
+    if st.button("Forzar Apertura de Cerradura"):
         cerradura_estado["cerrado"] = False
         cerradura_estado["forzado"] = True
         st.warning("Cerradura forzada manualmente")
-    if st.button("Forzar Apertura de Seguro") and not (22 <= hora_actual_horas or hora_actual_horas < 6):
+    if st.button("Forzar Apertura de Seguro"):
         cerradura_estado["seguro"] = False
         cerradura_estado["forzado"] = True
         st.warning("Seguro forzado manualmente")
