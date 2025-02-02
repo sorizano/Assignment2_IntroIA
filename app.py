@@ -15,8 +15,8 @@ if "hora_actual" not in st.session_state:
     st.session_state["hora_actual"] = datetime.now().strftime("%H:%M")
 if "ubicaciones_usuarios" not in st.session_state:
     st.session_state["ubicaciones_usuarios"] = {}
-if "acceso_correcto" not in st.session_state:
-    st.session_state["acceso_correcto"] = False  # Indica si el PIN fue correcto
+if "pin_correcto" not in st.session_state:
+    st.session_state["pin_correcto"] = False  # Nuevo estado para validar PIN correcto
 
 # 📌 Función para cargar usuarios predefinidos
 def cargar_usuarios():
@@ -81,24 +81,37 @@ with col_right:
     
     ingresado_pin = st.text_input("Ingrese PIN para abrir", type="password", key="pin_input")
 
-    # 🔓 Botón "Abrir Casa" para validar PIN y abrir la cerradura
-    if st.button("🔓 Abrir Casa"):
-        if usuario_seleccionado in usuarios_en_casa and ingresado_pin == usuarios.get(usuario_seleccionado):
+# ✅ **Botón para validar PIN y abrir la cerradura**
+if st.button("🔓 Abrir Casa"):
+    if ingresado_pin and usuario_seleccionado in usuarios_en_casa:
+        if ingresado_pin == usuarios[usuario_seleccionado]:
             st.session_state["cerrado"] = False
             st.session_state["seguro"] = False
             st.session_state["forzado"] = False
-            st.session_state["acceso_correcto"] = True  # Habilita el botón de cerrar
+            st.session_state["pin_correcto"] = True  # ✅ Marcar PIN como correcto
             st.success(f"✅ Cerradura abierta correctamente por {usuario_seleccionado}")
         else:
-            st.session_state["acceso_correcto"] = False  # No habilita el botón de cerrar
-            st.error("❌ PIN incorrecto o usuario no está en casa")
+            st.session_state["pin_correcto"] = False
+            st.error("❌ PIN incorrecto")
+    elif ingresado_pin:
+        st.error("❌ Solo los usuarios en casa pueden ingresar su PIN.")
 
-# 🔒 Botón "Cerrar Puerta" (Solo habilitado si se ingresó un PIN correcto)
-if st.button("🔒 Cerrar Puerta", disabled=not st.session_state["acceso_correcto"]):
+# ✅ **Botón para cerrar la puerta (Solo si el PIN fue correcto)**
+if st.button("🔒 Cerrar Puerta", disabled=not st.session_state["pin_correcto"]):
     st.session_state["cerrado"] = True
     st.session_state["seguro"] = True
-    st.session_state["acceso_correcto"] = False  # Deshabilita el botón después de cerrar
-    st.warning("🔒 Cerradura cerrada manualmente.")
+    st.session_state["pin_correcto"] = False  # Resetear validación del PIN
+    st.warning("🚪 La puerta ha sido cerrada.")
+
+# 🔓 **Botón para Forzar Apertura Manual**
+if st.button("🔓 Forzar Apertura"):
+    st.session_state["cerrado"] = False
+    st.session_state["seguro"] = False
+    st.session_state["forzado"] = True
+    st.markdown(
+        "<h3 style='text-align: center; color: red;'>⚠️ ¡Alerta! Cerradura y seguro forzados. Se ha enviado un mensaje al administrador.</h3>",
+        unsafe_allow_html=True
+    )
 
 # --------------------------
 # 📌 Estado de la cerradura
