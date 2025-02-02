@@ -8,7 +8,7 @@ st.set_page_config(layout="wide")
 if "cerrado" not in st.session_state:
     st.session_state["cerrado"] = True
 if "seguro" not in st.session_state:
-    st.session_state["seguro"] = True
+    st.session_state["seguro"] = True  # ✅ Restaurar el comportamiento original del seguro
 if "forzado" not in st.session_state:
     st.session_state["forzado"] = False
 if "hora_actual" not in st.session_state:
@@ -16,7 +16,7 @@ if "hora_actual" not in st.session_state:
 if "ubicaciones_usuarios" not in st.session_state:
     st.session_state["ubicaciones_usuarios"] = {}
 if "pin_correcto" not in st.session_state:
-    st.session_state["pin_correcto"] = False  # Nuevo estado para validar PIN correcto
+    st.session_state["pin_correcto"] = False  # ✅ Mantener el control del PIN correcto
 
 # 📌 Función para cargar usuarios predefinidos
 def cargar_usuarios():
@@ -70,6 +70,12 @@ with col_left:
     
     st.session_state["distancia_max"] = max(distancias)
 
+# ✅ **Evaluación automática del seguro (RESTABLECIDO A LA LÓGICA ORIGINAL)**
+if usuarios_en_casa:
+    st.session_state["seguro"] = False  # ✅ Si alguien está en casa, el seguro se abre
+else:
+    st.session_state["seguro"] = True  # ✅ Si todos están fuera, el seguro se cierra
+
 # --------------------------
 # 📌 Columna Derecha: Autenticación por PIN
 # --------------------------
@@ -99,7 +105,7 @@ if st.button("🔓 Abrir Casa"):
 # ✅ **Botón para cerrar la puerta (Solo si el PIN fue correcto)**
 if st.button("🔒 Cerrar Puerta", disabled=not st.session_state["pin_correcto"]):
     st.session_state["cerrado"] = True
-    st.session_state["seguro"] = True
+    st.session_state["seguro"] = True  # ✅ Al cerrar la puerta, el seguro se cierra también
     st.session_state["pin_correcto"] = False  # Resetear validación del PIN
     st.warning("🚪 La puerta ha sido cerrada.")
 
