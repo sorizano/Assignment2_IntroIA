@@ -94,7 +94,7 @@ if ingresado_pin:
         st.session_state["seguro"] = False
         st.session_state["forzado"] = False
         st.success("Cerradura abierta correctamente mediante PIN")
-        st.experimental_rerun()
+        st.rerun()  # <-- Se usa st.rerun() en lugar de st.experimental_rerun()
     else:
         st.error("PIN incorrecto")
 elif not st.session_state["forzado"]:
