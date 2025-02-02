@@ -63,18 +63,26 @@ with col_left:
             key=f"ubicacion_{usuario}"
         )
         st.session_state["ubicaciones_usuarios"][usuario] = ubicacion
-        distancias.append(ubicaciones[ubicacion])
+        distancia_actual = ubicaciones[ubicacion]
+        distancias.append(distancia_actual)
 
         if ubicacion == "Casa":
             usuarios_en_casa.append(usuario)  # Guardamos usuarios en casa
     
     st.session_state["distancia_max"] = max(distancias)
 
-# ✅ **Evaluación automática del seguro (RESTABLECIDO A LA LÓGICA ORIGINAL)**
-if usuarios_en_casa:
-    st.session_state["seguro"] = False  # ✅ Si alguien está en casa, el seguro se abre
+# ✅ **Regla Nocturna: Entre 10 PM y 6 AM, la cerradura y el seguro están cerrados**
+hora_actual_horas = int(st.session_state["hora_actual"].split(":")[0])
+if 22 <= hora_actual_horas or hora_actual_horas < 6:
+    st.session_state["cerrado"] = True
+    st.session_state["seguro"] = True
 else:
-    st.session_state["seguro"] = True  # ✅ Si todos están fuera, el seguro se cierra
+    # ✅ **Regla de Distancia**: Si al menos un usuario está a menos de 1.5 km, el seguro se mantiene abierto.
+    if min(distancias) < 1.5:
+        st.session_state["seguro"] = False
+    else:
+        st.session_state["cerrado"] = True
+        st.session_state["seguro"] = True
 
 # --------------------------
 # 📌 Columna Derecha: Autenticación por PIN
