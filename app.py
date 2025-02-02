@@ -46,9 +46,12 @@ st.title("Simulación de Cerradura Digital Inteligente")
 hora_editable = st.sidebar.time_input("Selecciona la hora", datetime.strptime(st.session_state["hora_actual"], "%H:%M").time())
 st.session_state["hora_actual"] = hora_editable.strftime("%H:%M")
 
+# Mostrar los usuarios registrados y sus PINs en un cuadro
+st.sidebar.markdown("### Usuarios Registrados")
+usuarios_texto = "\n".join([f"**{usuario}**: {pin}" for usuario, pin in usuarios.items()])
+st.sidebar.text_area("Usuarios y PINs", usuarios_texto, height=100, disabled=True)
+
 # Dividimos la interfaz en dos columnas principales:
-# - La columna izquierda se usará para la detección de celulares (ubicación)
-# - La columna derecha para la gestión de usuarios y autenticación vía PIN
 col_left, col_right = st.columns(2)
 
 # --------------------------
@@ -57,7 +60,6 @@ col_left, col_right = st.columns(2)
 with col_left:
     st.header("Ubicación de Celulares")
     distancias = []
-    # Usamos una clave única para cada selectbox para evitar conflictos
     for celular in ["Cel_mon", "Cel_father", "Cel_son"]:
         ubicacion = st.selectbox(
             f"Ubicación de {celular}",
@@ -65,7 +67,6 @@ with col_left:
             key=celular
         )
         distancias.append(ubicaciones[ubicacion])
-    # Guardamos la distancia máxima (para otros usos) y también dejamos a la mano la lista de distancias
     st.session_state["distancia_max"] = max(distancias)
 
 # --------------------------
@@ -80,49 +81,36 @@ with col_right:
             usuarios[nuevo_usuario] = nuevo_pin
             guardar_usuarios()
             st.success(f"Usuario '{nuevo_usuario}' registrado con éxito")
+            st.experimental_rerun()
         else:
             st.error("Ingrese usuario y PIN para el registro")
     
-    # Campo para la autenticación vía PIN
     ingresado_pin = st.text_input("Ingrese PIN para abrir", type="password", key="pin_input")
 
-# ---------------------------------------------------
-# Primero, evaluamos si se intenta abrir con PIN
-# ---------------------------------------------------
+# Evaluación de apertura
 if ingresado_pin:
     if ingresado_pin in usuarios.values():
         st.session_state["cerrado"] = False
         st.session_state["seguro"] = False
-        st.session_state["forzado"] = False  # Se reinicia el modo forzado
+        st.session_state["forzado"] = False
         st.success("Cerradura abierta correctamente mediante PIN")
         st.experimental_rerun()
     else:
         st.error("PIN incorrecto")
-# ---------------------------------------------------
-# Si no se ha ingresado PIN, se procede a evaluar por la ubicación
-# ---------------------------------------------------
 elif not st.session_state["forzado"]:
-    # Convertir la hora a un entero para la evaluación
     hora_actual_horas = int(st.session_state["hora_actual"].split(":")[0])
-    # Evaluación en función de la hora
     if 22 <= hora_actual_horas or hora_actual_horas < 6:
-        # Horario nocturno: se cierran ambos, sin importar la ubicación
         st.session_state["cerrado"] = True
         st.session_state["seguro"] = True
     else:
-        # Horario diurno: se utiliza la ubicación (celulares)
-        # Si TODOS los usuarios están alejados (mínima distancia >= 1.5 km):
         if min(distancias) >= 1.5:
             st.session_state["cerrado"] = True
             st.session_state["seguro"] = True
         else:
-            # Si al menos uno está cerca, se cierra la cerradura pero se deja el seguro abierto.
             st.session_state["cerrado"] = True
             st.session_state["seguro"] = False
 
-# --------------------------
-# Botón para Forzar Apertura (si se requiere abrir manualmente)
-# --------------------------
+# Botón para Forzar Apertura
 if st.button("Forzar Apertura"):
     st.session_state["cerrado"] = False
     st.session_state["seguro"] = False
@@ -132,9 +120,7 @@ if st.button("Forzar Apertura"):
         unsafe_allow_html=True
     )
 
-# --------------------------
-# Mostrar el estado en dos columnas
-# --------------------------
+# Estado de la cerradura
 col_estado1, col_estado2 = st.columns(2)
 with col_estado1:
     st.markdown(f"""
