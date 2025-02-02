@@ -17,6 +17,8 @@ if "ubicaciones_usuarios" not in st.session_state:
     st.session_state["ubicaciones_usuarios"] = {}
 if "pin_correcto" not in st.session_state:
     st.session_state["pin_correcto"] = False
+if "mensaje_alerta" not in st.session_state:
+    st.session_state["mensaje_alerta"] = ""
 
 # 📌 Función para cargar usuarios predefinidos
 def cargar_usuarios():
@@ -130,11 +132,19 @@ with col_boton2:
 
 # 🔓 **Botón para Forzar Apertura Manual**
 with col_boton3:
-    if st.button("🔓 Forzar Apertura"):
+    if st.button("🔓 Forzar Apertura", disabled=desactivar_todo):
         st.session_state["cerrado"] = False
         st.session_state["seguro"] = False
         st.session_state["forzado"] = True  # ✅ Activar el bloqueo total
+        st.session_state["mensaje_alerta"] = "⚠️ ¡Alerta! Cerradura y seguro forzados. TODA la funcionalidad ha sido desactivada."
         st.rerun()  # 🔄 Fuerza la recarga inmediata de la interfaz
+
+# 🔴 **Mostrar el mensaje de alerta si la cerradura fue forzada**
+if st.session_state["forzado"] and st.session_state["mensaje_alerta"]:
+    st.markdown(
+        f"<h3 style='text-align: center; color: red; width:100%; text-align:center;'>{st.session_state['mensaje_alerta']}</h3>",
+        unsafe_allow_html=True
+    )
 
 # --------------------------
 # 📌 Estado de la cerradura
