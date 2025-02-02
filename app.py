@@ -43,18 +43,15 @@ ubicaciones = {
 
 st.title("Simulación de Cerradura Digital Inteligente")
 
-# Control de Hora
-hora_editable = st.sidebar.time_input("Selecciona la hora", datetime.strptime(cerradura_estado["hora_actual"], "%H:%M").time())
-cerradura_estado["hora_actual"] = hora_editable.strftime("%H:%M")
-
-# Evaluación de cierre y seguro según la hora
-hora_actual_horas = int(cerradura_estado["hora_actual"].split(":")[0])
-if 22 <= hora_actual_horas or hora_actual_horas < 6:
-    cerradura_estado["cerrado"] = True
-    cerradura_estado["seguro"] = True
-else:
-    cerradura_estado["cerrado"] = False
-    cerradura_estado["seguro"] = False
+# Simulación de alerta por intento no autorizado
+top_alert = ""
+if not cerradura_estado["cerrado"] and not cerradura_estado["seguro"]:
+    top_alert = """
+    <h2 style='text-align: center; color: red; font-weight: bold;'>
+    ¡Alerta! Intento de apertura no autorizado se ha reportado al Administrador
+    </h2>
+    """
+    st.markdown(top_alert, unsafe_allow_html=True)
 
 # Estado de la cerradura en dos columnas
 col_estado1, col_estado2 = st.columns(2)
@@ -67,6 +64,19 @@ with col_estado2:
     st.markdown(f"""
         <h1 style='text-align: center;'>Seguro: <span style='color:{'green' if not cerradura_estado['seguro'] else 'red'}; font-weight: bold;'>{'Sí' if cerradura_estado['seguro'] else 'No'}</span></h1>
     """, unsafe_allow_html=True)
+
+# Control de Hora
+hora_editable = st.sidebar.time_input("Selecciona la hora", datetime.strptime(cerradura_estado["hora_actual"], "%H:%M").time())
+cerradura_estado["hora_actual"] = hora_editable.strftime("%H:%M")
+
+# Evaluación de cierre y seguro según la hora
+hora_actual_horas = int(cerradura_estado["hora_actual"].split(":")[0])
+if 22 <= hora_actual_horas or hora_actual_horas < 6:
+    cerradura_estado["cerrado"] = True
+    cerradura_estado["seguro"] = True
+else:
+    cerradura_estado["cerrado"] = False
+    cerradura_estado["seguro"] = False
 
 col1, col2, col3 = st.columns(3)
 
@@ -95,10 +105,6 @@ with col2:
         st.success("Cerradura abierta correctamente")
     elif ingresado_pin:
         st.error("PIN incorrecto")
-
-# Simulación de alerta por intento no autorizado
-if not cerradura_estado["cerrado"] and ingresado_pin not in cerradura_estado["usuarios"].values():
-    st.warning("¡Alerta! Intento de apertura no autorizado")
 
 st.subheader("Registro de Estado")
 st.json(cerradura_estado)
