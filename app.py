@@ -93,7 +93,7 @@ with col_estado2:
         {'Cerrado' if st.session_state['seguro'] else 'Abierto'}</h1>
     """, unsafe_allow_html=True)
 
-# Forzar apertura SIEMPRE DISPONIBLE
+# Forzar apertura
 if st.button("Forzar Apertura"):
     st.session_state["cerrado"] = False
     st.session_state["seguro"] = False
@@ -102,7 +102,6 @@ if st.button("Forzar Apertura"):
     st.markdown("""
     <h3 style='text-align: center; color: red;'>⚠️ ¡Alerta! Cerradura y seguro forzados. Se ha enviado un mensaje al administrador.</h3>
     """, unsafe_allow_html=True)
-    st.rerun()
 
 # Gestión de usuarios
 with col2:
