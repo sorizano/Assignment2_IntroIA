@@ -106,7 +106,7 @@ col_boton1, col_boton2, col_boton3 = st.columns(3)
 
 # ✅ **Botón para validar PIN y abrir la cerradura**
 with col_boton1:
-    if st.button("🔓 Abrir Casa", disabled=desactivar_todo or st.session_state["forzado"]):  # ❌ Deshabilitado si se usó "Forzar Apertura"
+    if st.button("🔓 Abrir Casa", disabled=desactivar_todo):  # ❌ Deshabilitado si se usó "Forzar Apertura"
         if ingresado_pin and usuario_seleccionado in usuarios_en_casa:
             if ingresado_pin == usuarios[usuario_seleccionado]:
                 st.session_state["cerrado"] = False
@@ -130,14 +130,11 @@ with col_boton2:
 
 # 🔓 **Botón para Forzar Apertura Manual**
 with col_boton3:
-    if st.button("🔓 Forzar Apertura", disabled=desactivar_todo):
+    if st.button("🔓 Forzar Apertura"):
         st.session_state["cerrado"] = False
         st.session_state["seguro"] = False
         st.session_state["forzado"] = True  # ✅ Activar el bloqueo total
-        st.markdown(
-            "<h3 style='text-align: center; color: red; width:100%; text-align:center;'>⚠️ ¡Alerta! Cerradura y seguro forzados. TODA la funcionalidad ha sido desactivada.</h3>",
-            unsafe_allow_html=True
-        )
+        st.rerun()  # 🔄 Fuerza la recarga inmediata de la interfaz
 
 # --------------------------
 # 📌 Estado de la cerradura
