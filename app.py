@@ -96,18 +96,13 @@ elif ingresado_pin:
     st.error("❌ Solo los usuarios en casa pueden ingresar su PIN.")
 
 # Control de tiempo para cerrar automáticamente después de 10 segundos
-if st.session_state.get("temporizador"):
+if st.session_state["temporizador"]:
     tiempo_transcurrido = time.time() - st.session_state["temporizador"]
-
-    # Mostrar en pantalla el tiempo transcurrido para depuración
-    st.write(f"⏳ Tiempo transcurrido: {tiempo_transcurrido:.2f} segundos")
-
     if tiempo_transcurrido >= 10:
         st.session_state["cerrado"] = True
         st.session_state["seguro"] = True
-        st.session_state["temporizador"] = None  # Resetear el temporizador
+        st.session_state["temporizador"] = None  # Resetear temporizador
         st.warning("⏳ Cerradura cerrada automáticamente después de 10 segundos.")
-        st.rerun()  # 🔄 Forzar actualización de la app cada vez que se cierra
 
 # Evaluación en función de la hora y ubicación (si no se usó PIN)
 elif not st.session_state["forzado"]:
