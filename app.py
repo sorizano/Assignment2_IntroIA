@@ -108,9 +108,6 @@ if st.session_state.get("temporizador"):
         st.session_state["temporizador"] = None  # Resetear el temporizador
         st.warning("⏳ Cerradura cerrada automáticamente después de 10 segundos.")
         st.rerun()  # 🔄 Forzar actualización de la app cada vez que se cierra
-    else:
-        time.sleep(1)  # Espera 1 segundo para la próxima evaluación
-        st.rerun()  # 🔄 Forzar actualización de la app
 
 # Evaluación en función de la hora y ubicación (si no se usó PIN)
 elif not st.session_state["forzado"]:
