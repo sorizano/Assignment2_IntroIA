@@ -63,16 +63,15 @@ if 22 <= hora_actual_horas or hora_actual_horas < 6:
     if not st.session_state["forzado"]:
         st.session_state["cerrado"] = True
         st.session_state["seguro"] = True
-elif st.session_state["distancia_max"] >= 2.5:
+elif st.session_state["distancia_max"] >= 1.5:
+    # Si la distancia es mayor o igual a 1.5 km, 
+    # se cierra la cerradura y el seguro, sin importar la hora.
     st.session_state["cerrado"] = True
     st.session_state["seguro"] = True
-elif st.session_state["distancia_max"] >= 1.5:
-    st.session_state["cerrado"] = True
-    st.session_state["seguro"] = False
 else:
     if not st.session_state["forzado"]:
-        # Para el caso de día y cuando todos están en casa (distancia < 1.5),
-        # se establece la cerradura cerrada y el seguro abierto.
+        # En día y si todos están en casa (distancia < 1.5 km),
+        # la cerradura se mantiene cerrada y el seguro se deja abierto.
         st.session_state["cerrado"] = True
         st.session_state["seguro"] = False
 
@@ -119,7 +118,7 @@ with col2:
     if ingresado_pin in usuarios.values():
         st.session_state["cerrado"] = False
         st.session_state["seguro"] = False
-        st.session_state["forzado"] = False  # No se considera forzado si se ingresó correctamente
+        st.session_state["forzado"] = False  # Se reinicia el modo forzado si el PIN es correcto
         st.success("Cerradura abierta correctamente")
         st.rerun()
     elif ingresado_pin:
