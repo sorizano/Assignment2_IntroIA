@@ -136,7 +136,7 @@ with col_boton3:
         st.session_state["cerrado"] = False
         st.session_state["seguro"] = False
         st.session_state["forzado"] = True  # ✅ Activar el bloqueo total
-        st.session_state["mensaje_alerta"] = "⚠️ ¡Alerta! Cerradura y seguro forzados. TODA la funcionalidad ha sido desactivada."
+        st.session_state["mensaje_alerta"] = "⚠️ ¡Alerta! Cerradura y seguro forzados. Se ha enviado un mensaje al administrador."
         st.rerun()  # 🔄 Fuerza la recarga inmediata de la interfaz
 
 # 🔴 **Mostrar el mensaje de alerta si la cerradura fue forzada**
