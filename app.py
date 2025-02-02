@@ -38,23 +38,9 @@ ubicaciones = {
 
 st.title("Simulación de Cerradura Digital Inteligente")
 
-# Forzar apertura SIEMPRE DISPONIBLE
-if st.button("Forzar Apertura"):
-    st.session_state["cerrado"] = False
-    st.session_state["seguro"] = False
-    st.session_state["forzado"] = True
-    st.error("⚠️ ¡Alerta! Cerradura y seguro forzados. Se ha enviado un mensaje al administrador.")
-    st.rerun()
-
-# Evaluación de cierre y seguro según la hora (Prioridad Alta, pero ejecutada DESPUÉS de forzar apertura)
-hora_actual_horas = int(st.session_state["hora_actual"].split(":")[0])
-if 22 <= hora_actual_horas or hora_actual_horas < 6:
-    st.session_state["cerrado"] = True
-    st.session_state["seguro"] = True
-    st.session_state["forzado"] = False  # Reset de forzado si cambia la hora a este rango
-
-# ALERTA: Verificar si se debe mostrar
-mostrar_alerta = not st.session_state["cerrado"] and not st.session_state["seguro"] and st.session_state["forzado"]
+# Control de Hora
+hora_editable = st.sidebar.time_input("Selecciona la hora", datetime.strptime(st.session_state["hora_actual"], "%H:%M").time())
+st.session_state["hora_actual"] = hora_editable.strftime("%H:%M")
 
 # Estado de la cerradura en dos columnas
 col_estado1, col_estado2 = st.columns(2)
@@ -71,13 +57,28 @@ with col_estado2:
         {'Cerrado' if st.session_state['seguro'] else 'Abierto'}</h1>
     """, unsafe_allow_html=True)
 
-# Mostrar alerta si se cumple la condición
-if mostrar_alerta:
-    st.error("⚠️ ¡Alerta! Intento de apertura no autorizado. Se ha reportado al Administrador.")
+# Forzar apertura SIEMPRE DISPONIBLE
+if st.button("Forzar Apertura"):
+    st.session_state["cerrado"] = False
+    st.session_state["seguro"] = False
+    st.session_state["forzado"] = True
+    st.warning("Cerradura y seguro forzados manualmente")
+    st.rerun()
 
-# Control de Hora
-hora_editable = st.sidebar.time_input("Selecciona la hora", datetime.strptime(st.session_state["hora_actual"], "%H:%M").time())
-st.session_state["hora_actual"] = hora_editable.strftime("%H:%M")
+# Evaluación de cierre y seguro según la hora (Prioridad Alta, pero ejecutada DESPUÉS de forzar apertura)
+hora_actual_horas = int(st.session_state["hora_actual"].split(":")[0])
+if 22 <= hora_actual_horas or hora_actual_horas < 6:
+    st.session_state["cerrado"] = True
+    st.session_state["seguro"] = True
+    st.session_state["forzado"] = False  # Reset de forzado si cambia la hora a este rango
+
+# Simulación de alerta por intento no autorizado (cuando ambos están abiertos y fue por forzado)
+if not st.session_state["cerrado"] and not st.session_state["seguro"] and st.session_state["forzado"]:
+    st.markdown("""
+    <h2 style='text-align: center; color: red; font-weight: bold;'>
+    ¡Alerta! Intento de apertura no autorizado se ha reportado al Administrador
+    </h2>
+    """, unsafe_allow_html=True)
 
 col1, col2 = st.columns(2)
 
