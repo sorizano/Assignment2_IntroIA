@@ -71,7 +71,10 @@ elif st.session_state["distancia_max"] >= 1.5:
     st.session_state["seguro"] = False
 else:
     if not st.session_state["forzado"]:
-        st.session_state["cerrado"] = False
+        # Para el caso de día y cuando todos están en casa (distancia < 1.5),
+        # se establece la cerradura cerrada y el seguro abierto.
+        st.session_state["cerrado"] = True
+        st.session_state["seguro"] = False
 
 # Estado de la cerradura en dos columnas
 col_estado1, col_estado2 = st.columns(2)
