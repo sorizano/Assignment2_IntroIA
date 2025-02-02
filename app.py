@@ -5,7 +5,7 @@ import time
 
 st.set_page_config(layout="wide")
 
-# Inicialización del estado en sesión
+# 🔄 Inicialización del estado en sesión
 if "cerrado" not in st.session_state:
     st.session_state["cerrado"] = True
 if "seguro" not in st.session_state:
@@ -17,15 +17,15 @@ if "hora_actual" not in st.session_state:
 if "ubicaciones_usuarios" not in st.session_state:
     st.session_state["ubicaciones_usuarios"] = {}
 if "temporizador" not in st.session_state:
-    st.session_state["temporizador"] = None  # Se guarda el momento en que se abre
+    st.session_state["temporizador"] = None  # ⏳ Se guarda el momento en que se abrió
 
-# Función para cargar usuarios predefinidos
+# 📌 Función para cargar usuarios predefinidos
 def cargar_usuarios():
     return {"mama": "1234", "papa": "5678", "hijo": "9012"}
 
 usuarios = cargar_usuarios()
 
-# Definición de ubicaciones y distancias
+# 📌 Definición de ubicaciones y distancias
 ubicaciones = {
     "Casa": 0,
     "Lavandería - 2km": 2.0,
@@ -37,20 +37,20 @@ ubicaciones = {
 
 st.title("Simulación de Cerradura Digital Inteligente")
 
-# Control de Hora en la barra lateral
+# ⏰ Control de Hora en la barra lateral
 hora_editable = st.sidebar.time_input("Selecciona la hora", datetime.strptime(st.session_state["hora_actual"], "%H:%M").time())
 st.session_state["hora_actual"] = hora_editable.strftime("%H:%M")
 
-# Mostrar los usuarios registrados y sus PINs en un cuadro en la barra lateral
+# 📌 Mostrar los usuarios registrados y sus PINs en la barra lateral
 st.sidebar.markdown("### Usuarios Registrados")
 usuarios_texto = "\n".join([f"**{usuario}**: {pin}" for usuario, pin in usuarios.items()])
 st.sidebar.text_area("Usuarios y PINs", usuarios_texto, height=100, disabled=True)
 
-# Dividimos la interfaz en dos columnas principales
+# 🔄 Dividimos la interfaz en dos columnas principales
 col_left, col_right = st.columns(2)
 
 # --------------------------
-# Columna Izquierda: Ubicación de Celulares
+# 📌 Columna Izquierda: Ubicación de Celulares
 # --------------------------
 with col_left:
     st.header("Ubicación de Celulares")
@@ -72,7 +72,7 @@ with col_left:
     st.session_state["distancia_max"] = max(distancias)
 
 # --------------------------
-# Columna Derecha: Autenticación por PIN
+# 📌 Columna Derecha: Autenticación por PIN
 # --------------------------
 with col_right:
     st.header("Autenticación de Usuario")
@@ -98,31 +98,21 @@ elif ingresado_pin:
 # ⏳ **Control de tiempo para cerrar automáticamente después de 10 segundos**
 if st.session_state["temporizador"]:
     tiempo_transcurrido = time.time() - st.session_state["temporizador"]
-    
-    # 🔍 Mostrar el tiempo transcurrido en pantalla (para debug)
+
+    # 🔍 Mostrar el tiempo transcurrido en pantalla para depuración
     st.write(f"⏳ Tiempo transcurrido desde la apertura: {tiempo_transcurrido:.2f} segundos")
 
+    # 🔄 Si el tiempo aún es 0.00, forzar una actualización para empezar a contar
+    if tiempo_transcurrido < 0.5:  # Si es menor a medio segundo, recargar la app
+        st.rerun()
+
+    # 🔒 Cerrar la cerradura automáticamente después de 10 segundos
     if tiempo_transcurrido >= 10:
         st.session_state["cerrado"] = True
         st.session_state["seguro"] = True
         st.session_state["temporizador"] = None  # Resetear temporizador
         st.warning("⏳ Cerradura cerrada automáticamente después de 10 segundos.")
         st.rerun()  # 🔄 Forzar actualización
-
-# Evaluación en función de la hora y ubicación (si no se usó PIN)
-elif not st.session_state["forzado"]:
-    hora_actual_horas = int(st.session_state["hora_actual"].split(":")[0])
-    
-    if 22 <= hora_actual_horas or hora_actual_horas < 6:
-        st.session_state["cerrado"] = True
-        st.session_state["seguro"] = True
-    else:
-        if min(distancias) >= 1.5:
-            st.session_state["cerrado"] = True
-            st.session_state["seguro"] = True
-        else:
-            st.session_state["cerrado"] = True
-            st.session_state["seguro"] = False
 
 # 🔓 **Botón para Forzar Apertura Manual**
 if st.button("🔓 Forzar Apertura"):
@@ -136,7 +126,7 @@ if st.button("🔓 Forzar Apertura"):
     )
 
 # --------------------------
-# Estado de la cerradura
+# 📌 Estado de la cerradura
 # --------------------------
 col_estado1, col_estado2 = st.columns(2)
 with col_estado1:
