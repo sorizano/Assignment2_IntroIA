@@ -76,7 +76,7 @@ if 22 <= hora_actual_horas or hora_actual_horas < 6:
 if not st.session_state["cerrado"] and not st.session_state["seguro"] and st.session_state["forzado"]:
     st.markdown("""
     <h2 style='text-align: center; color: red; font-weight: bold;'>
-    ¡Alerta! Intento de apertura no autorizado se ha reportado al Administrador
+    ¡Alerta! Intento de apertura no autorizado. Se ha enviado un mensaje al administrador.
     </h2>
     """, unsafe_allow_html=True)
 
