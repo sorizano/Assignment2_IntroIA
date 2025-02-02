@@ -106,5 +106,14 @@ with col2:
     elif ingresado_pin:
         st.error("PIN incorrecto")
 
+with col3:
+    st.header("Forzar Apertura")
+    if st.button("Forzar Apertura de Cerradura"):
+        cerradura_estado["cerrado"] = False
+        st.warning("Cerradura forzada manualmente")
+    if st.button("Forzar Apertura de Seguro"):
+        cerradura_estado["seguro"] = False
+        st.warning("Seguro forzado manualmente")
+
 st.subheader("Registro de Estado")
 st.json(cerradura_estado)
