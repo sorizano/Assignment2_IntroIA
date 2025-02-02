@@ -57,12 +57,17 @@ if cerradura_estado["cerrado"] and cerradura_estado["seguro"]:
 col_estado1, col_estado2 = st.columns(2)
 with col_estado1:
     st.markdown(f"""
-        <h2 style='text-align: center;'>Estado de la Cerradura</h2>
-        <h1 style='text-align: center;'>Cerrado: <span style='color:{'red' if not cerradura_estado['cerrado'] else 'green'}; font-weight: bold;'>{'No' if not cerradura_estado['cerrado'] else 'Sí'}</span></h1>
+        <h2 style='text-align: center;'>Estado de Cerradura</h2>
+        <h1 style='text-align: center;'>
+        <span style='color:{'red' if cerradura_estado['cerrado'] else 'green'}; font-weight: bold;'>
+        {'Cerrado' if cerradura_estado['cerrado'] else 'Abierto'}</span></h1>
     """, unsafe_allow_html=True)
 with col_estado2:
     st.markdown(f"""
-        <h1 style='text-align: center;'>Seguro: <span style='color:{'red' if not cerradura_estado['seguro'] else 'green'}; font-weight: bold;'>{'No' if not cerradura_estado['seguro'] else 'Sí'}</span></h1>
+        <h2 style='text-align: center;'>Estado de Seguro</h2>
+        <h1 style='text-align: center;'>
+        <span style='color:{'red' if cerradura_estado['seguro'] else 'green'}; font-weight: bold;'>
+        {'Cerrado' if cerradura_estado['seguro'] else 'Abierto'}</span></h1>
     """, unsafe_allow_html=True)
 
 # Control de Hora
