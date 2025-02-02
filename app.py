@@ -94,7 +94,7 @@ col_boton1, col_boton2, col_boton3 = st.columns(3)
 
 # ✅ **Botón para validar PIN y abrir la cerradura**
 with col_boton1:
-    if st.button("🔓 Abrir Casa"):
+    if st.button("🔓 Abrir Casa", disabled=st.session_state["forzado"]):  # ❌ Deshabilitado si se usó "Forzar Apertura"
         if ingresado_pin and usuario_seleccionado in usuarios_en_casa:
             if ingresado_pin == usuarios[usuario_seleccionado]:
                 st.session_state["cerrado"] = False
@@ -123,7 +123,7 @@ with col_boton3:
         st.session_state["seguro"] = False
         st.session_state["forzado"] = True
         st.markdown(
-            "<h3 style='text-align: center; color: red;'>⚠️ ¡Alerta! Cerradura y seguro forzados. Se ha enviado un mensaje al administrador.</h3>",
+            "<h3 style='text-align: center; color: red; width:100%; text-align:center;'>⚠️ ¡Alerta! Cerradura y seguro forzados. Se ha enviado un mensaje al administrador.</h3>",
             unsafe_allow_html=True
         )
 
