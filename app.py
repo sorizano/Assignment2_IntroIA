@@ -3,6 +3,8 @@ import time
 from datetime import datetime
 import random
 
+st.set_page_config(layout="wide")
+
 # Estado inicial de la cerradura
 cerradura_estado = {
     "cerrado": True,
@@ -30,27 +32,31 @@ ubicaciones = {
 
 st.title("Simulación de Cerradura Digital Inteligente")
 
-# Sección de control de tiempo
-st.sidebar.header("Control de Hora")
+col1, col2, col3 = st.columns(3)
 
-hora_editable = st.sidebar.time_input("Selecciona la hora", datetime.strptime(cerradura_estado["hora_actual"], "%H:%M").time())
-cerradura_estado["hora_actual"] = hora_editable.strftime("%H:%M")
+with col1:
+    st.header("Control de Hora")
+    hora_editable = st.time_input("Selecciona la hora", datetime.strptime(cerradura_estado["hora_actual"], "%H:%M").time())
+    cerradura_estado["hora_actual"] = hora_editable.strftime("%H:%M")
+    st.text(f"Hora actual: {cerradura_estado['hora_actual']}")
 
-# Mostrar reloj en tiempo real
-def mostrar_reloj():
-    st.sidebar.text(f"Hora actual: {cerradura_estado['hora_actual']}")
-mostrar_reloj()
+with col2:
+    st.header("Ubicación de Celulares")
+    for celular in cerradura_estado["celulares"].keys():
+        cerradura_estado["celulares"][celular] = st.selectbox(f"Ubicación de {celular}", options=list(ubicaciones.keys()), index=0)
 
-# Sección de control de usuarios
-st.sidebar.header("Usuarios y PINs")
-usuarios = cerradura_estado["usuarios"]
-for user, pin in usuarios.items():
-    st.sidebar.text(f"{user}: {pin}")
-
-# Simulación de distancia de celulares
-st.header("Ubicación de Celulares")
-for celular in cerradura_estado["celulares"].keys():
-    cerradura_estado["celulares"][celular] = st.selectbox(f"Ubicación de {celular}", options=list(ubicaciones.keys()), index=0)
+with col3:
+    st.header("Usuarios y PINs")
+    usuarios = cerradura_estado["usuarios"]
+    for user, pin in usuarios.items():
+        st.text(f"{user}: {pin}")
+    ingresado_pin = st.text_input("Ingrese PIN", type="password")
+    if ingresado_pin in usuarios.values():
+        cerradura_estado["cerrado"] = False
+        cerradura_estado["seguro"] = False
+        st.success("Cerradura abierta correctamente")
+    elif ingresado_pin:
+        st.error("PIN incorrecto")
 
 # Evaluación de cierre y seguro
 celulares_distancias = [ubicaciones[cerradura_estado["celulares"][c]] for c in cerradura_estado["celulares"]]
@@ -72,26 +78,13 @@ elif cerradura_estado["hora_actual"] == "22:00":
     cerradura_estado["cerrado"] = True
     cerradura_estado["seguro"] = True
 
-# Mostrar estado de la cerradura
-st.subheader("Estado de la Cerradura")
+st.header("Estado de la Cerradura")
 st.text(f"Cerrado: {'Sí' if cerradura_estado['cerrado'] else 'No'}")
 st.text(f"Seguro: {'Sí' if cerradura_estado['seguro'] else 'No'}")
-
-# Apertura con PIN
-st.subheader("Apertura de Cerradura")
-ingresado_pin = st.text_input("Ingrese PIN", type="password")
-if ingresado_pin in usuarios.values():
-    cerradura_estado["cerrado"] = False
-    cerradura_estado["seguro"] = False
-    st.success("Cerradura abierta correctamente")
-else:
-    if ingresado_pin:
-        st.error("PIN incorrecto")
 
 # Simulación de alerta por intento no autorizado
 if not cerradura_estado["cerrado"] and ingresado_pin not in usuarios.values():
     st.warning("¡Alerta! Intento de apertura no autorizado")
 
-# Guardar estado de la cerradura
 st.subheader("Registro de Estado")
 st.json(cerradura_estado)
