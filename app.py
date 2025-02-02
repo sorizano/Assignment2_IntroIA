@@ -113,3 +113,4 @@ with col2:
 
 st.subheader("Registro de Estado")
 st.json(st.session_state)
+    
