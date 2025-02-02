@@ -13,6 +13,8 @@ if "forzado" not in st.session_state:
     st.session_state["forzado"] = False
 if "hora_actual" not in st.session_state:
     st.session_state["hora_actual"] = datetime.now().strftime("%H:%M")
+if "distancia_max" not in st.session_state:
+    st.session_state["distancia_max"] = 0
 
 # Cargar usuarios desde un archivo JSON
 def cargar_usuarios():
@@ -33,7 +35,9 @@ ubicaciones = {
     "Casa": 0,
     "Lavandería - 2km": 2.0,
     "Mall - 1.6km": 1.6,
-    "Farmacia - 1.2km": 1.2
+    "Farmacia - 1.2km": 1.2,
+    "Oficina - 2.5km": 2.5,
+    "Aeropuerto - 3km": 3.0
 }
 
 st.title("Simulación de Cerradura Digital Inteligente")
@@ -42,14 +46,32 @@ st.title("Simulación de Cerradura Digital Inteligente")
 hora_editable = st.sidebar.time_input("Selecciona la hora", datetime.strptime(st.session_state["hora_actual"], "%H:%M").time())
 st.session_state["hora_actual"] = hora_editable.strftime("%H:%M")
 
-# Evaluación de cierre y seguro según la hora (Prioridad Alta, pero ejecutada DESPUÉS de forzar apertura)
+# Determinar la distancia máxima de los celulares
+distancias = []
+col1, col2 = st.columns(2)
+with col1:
+    st.header("Ubicación de Celulares")
+    for celular in ["Cel_mon", "Cel_father", "Cel_son"]:
+        ubicacion = st.selectbox(f"Ubicación de {celular}", options=list(ubicaciones.keys()), index=0)
+        distancias.append(ubicaciones[ubicacion])
+
+st.session_state["distancia_max"] = max(distancias)
+
+# Evaluación de cierre y seguro según la hora y distancia
 hora_actual_horas = int(st.session_state["hora_actual"].split(":")[0])
 if 22 <= hora_actual_horas or hora_actual_horas < 6:
+    if not st.session_state["forzado"]:
+        st.session_state["cerrado"] = True
+        st.session_state["seguro"] = True
+elif st.session_state["distancia_max"] >= 2.5:
     st.session_state["cerrado"] = True
     st.session_state["seguro"] = True
-    st.session_state["forzado"] = False  # Reset de forzado si cambia la hora a este rango
+elif st.session_state["distancia_max"] >= 1.5:
+    st.session_state["cerrado"] = True
+    st.session_state["seguro"] = False
 else:
-    st.session_state["cerrado"] = False  # Después de las 6 am la cerradura debe estar abierta automáticamente
+    if not st.session_state["forzado"]:
+        st.session_state["cerrado"] = False
 
 # Estado de la cerradura en dos columnas
 col_estado1, col_estado2 = st.columns(2)
@@ -77,13 +99,7 @@ if st.button("Forzar Apertura"):
     """, unsafe_allow_html=True)
     st.rerun()
 
-col1, col2 = st.columns(2)
-
-with col1:
-    st.header("Ubicación de Celulares")
-    for celular in ["Cel_mon", "Cel_father", "Cel_son"]:
-        st.selectbox(f"Ubicación de {celular}", options=list(ubicaciones.keys()), index=0)
-
+# Gestión de usuarios
 with col2:
     st.header("Gestión de Usuarios")
     nuevo_usuario = st.text_input("Nuevo usuario")
