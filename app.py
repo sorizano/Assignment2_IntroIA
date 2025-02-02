@@ -32,6 +32,16 @@ ubicaciones = {
 
 st.title("Simulación de Cerradura Digital Inteligente")
 
+# Estado de la cerradura en grande
+st.markdown("""
+    <h2 style='text-align: center;'>Estado de la Cerradura</h2>
+    <h1 style='text-align: center;'>Cerrado: <span style='color:{}; font-weight: bold;'>{}</span></h1>
+    <h1 style='text-align: center;'>Seguro: <span style='color:{}; font-weight: bold;'>{}</span></h1>
+""".format(
+    "red" if cerradura_estado["cerrado"] else "green", "Sí" if cerradura_estado["cerrado"] else "No",
+    "red" if cerradura_estado["seguro"] else "green", "Sí" if cerradura_estado["seguro"] else "No"
+), unsafe_allow_html=True)
+
 col1, col2, col3 = st.columns(3)
 
 with col1:
@@ -77,10 +87,6 @@ if cerradura_estado["hora_actual"] == "06:00":
 elif cerradura_estado["hora_actual"] == "22:00":
     cerradura_estado["cerrado"] = True
     cerradura_estado["seguro"] = True
-
-st.header("Estado de la Cerradura")
-st.text(f"Cerrado: {'Sí' if cerradura_estado['cerrado'] else 'No'}")
-st.text(f"Seguro: {'Sí' if cerradura_estado['seguro'] else 'No'}")
 
 # Simulación de alerta por intento no autorizado
 if not cerradura_estado["cerrado"] and ingresado_pin not in usuarios.values():
