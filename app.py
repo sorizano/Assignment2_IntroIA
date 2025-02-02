@@ -63,6 +63,13 @@ with col1:
     cerradura_estado["hora_actual"] = hora_editable.strftime("%H:%M")
     st.text(f"Hora actual: {cerradura_estado['hora_actual']}")
 
+# Evaluación de cierre y seguro
+hora_actual_horas = int(cerradura_estado["hora_actual"].split(":")[0])
+if 22 <= hora_actual_horas or hora_actual_horas < 6:
+    cerradura_estado["cerrado"] = True
+    cerradura_estado["seguro"] = True
+    st.experimental_rerun()
+
 with col2:
     st.header("Ubicación de Celulares")
     for celular in cerradura_estado["celulares"].keys():
@@ -88,24 +95,6 @@ with col3:
         st.success("Cerradura abierta correctamente")
     elif ingresado_pin:
         st.error("PIN incorrecto")
-
-# Evaluación de cierre y seguro
-celulares_distancias = [ubicaciones[cerradura_estado["celulares"][c]] for c in cerradura_estado["celulares"]]
-
-todos_fuera = all(d >= 1.5 for d in celulares_distancias)
-algunos_cerca = any(d < 1.5 for d in celulares_distancias)
-
-# Condiciones de horario
-hora_actual_horas = int(cerradura_estado["hora_actual"].split(":")[0])
-if 22 <= hora_actual_horas or hora_actual_horas < 6:
-    cerradura_estado["cerrado"] = True
-    cerradura_estado["seguro"] = True
-elif todos_fuera:
-    cerradura_estado["seguro"] = True
-    cerradura_estado["cerrado"] = True
-elif algunos_cerca:
-    cerradura_estado["seguro"] = False
-    cerradura_estado["cerrado"] = True
 
 # Simulación de alerta por intento no autorizado
 if not cerradura_estado["cerrado"] and ingresado_pin not in cerradura_estado["usuarios"].values():
