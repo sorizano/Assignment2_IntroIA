@@ -46,7 +46,7 @@ st.title("Simulación de Cerradura Digital Inteligente")
 hora_editable = st.sidebar.time_input("Selecciona la hora", datetime.strptime(st.session_state["hora_actual"], "%H:%M").time())
 st.session_state["hora_actual"] = hora_editable.strftime("%H:%M")
 
-# Determinar la distancia máxima de los celulares
+# Determinar las distancias de los celulares
 distancias = []
 col1, col2 = st.columns(2)
 with col1:
@@ -55,27 +55,30 @@ with col1:
         ubicacion = st.selectbox(f"Ubicación de {celular}", options=list(ubicaciones.keys()), index=0)
         distancias.append(ubicaciones[ubicacion])
 
+# Para efectos de otras evaluaciones, podemos seguir guardando la distancia máxima,
+# aunque en la nueva lógica se usará el mínimo para determinar si algún usuario está cerca.
 st.session_state["distancia_max"] = max(distancias)
 
-# Evaluación de cierre y seguro según la hora y distancia
+# Evaluación de la cerradura y el seguro según la hora y la distancia de los usuarios
 hora_actual_horas = int(st.session_state["hora_actual"].split(":")[0])
-if 22 <= hora_actual_horas or hora_actual_horas < 6:
-    if not st.session_state["forzado"]:
+if not st.session_state["forzado"]:
+    # Si es horario nocturno (entre 22:00 y 6:00), siempre se cierran ambos
+    if 22 <= hora_actual_horas or hora_actual_horas < 6:
         st.session_state["cerrado"] = True
         st.session_state["seguro"] = True
-elif st.session_state["distancia_max"] >= 1.5:
-    # Si la distancia es mayor o igual a 1.5 km, 
-    # se cierra la cerradura y el seguro, sin importar la hora.
-    st.session_state["cerrado"] = True
-    st.session_state["seguro"] = True
-else:
-    if not st.session_state["forzado"]:
-        # En día y si todos están en casa (distancia < 1.5 km),
-        # la cerradura se mantiene cerrada y el seguro se deja abierto.
-        st.session_state["cerrado"] = True
-        st.session_state["seguro"] = False
+    else:
+        # En horario diurno:
+        # - Si todos los usuarios están alejados (mínima distancia >= 1.5 km),
+        #   se cierran ambos (cerradura y seguro).
+        # - Si al menos uno está cerca (distancia < 1.5 km), se cierra la cerradura pero se deja el seguro abierto.
+        if min(distancias) >= 1.5:
+            st.session_state["cerrado"] = True
+            st.session_state["seguro"] = True
+        else:
+            st.session_state["cerrado"] = True
+            st.session_state["seguro"] = False
 
-# Estado de la cerradura en dos columnas
+# Mostrar el estado en dos columnas
 col_estado1, col_estado2 = st.columns(2)
 with col_estado1:
     st.markdown(f"""
