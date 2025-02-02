@@ -95,19 +95,17 @@ celulares_distancias = [ubicaciones[cerradura_estado["celulares"][c]] for c in c
 todos_fuera = all(d >= 1.5 for d in celulares_distancias)
 algunos_cerca = any(d < 1.5 for d in celulares_distancias)
 
-if todos_fuera:
+# Condiciones de horario
+hora_actual_horas = int(cerradura_estado["hora_actual"].split(":")[0])
+if 22 <= hora_actual_horas or hora_actual_horas < 6:
+    cerradura_estado["cerrado"] = True
+    cerradura_estado["seguro"] = True
+elif todos_fuera:
     cerradura_estado["seguro"] = True
     cerradura_estado["cerrado"] = True
 elif algunos_cerca:
     cerradura_estado["seguro"] = False
     cerradura_estado["cerrado"] = True
-
-# Condiciones de horario
-if cerradura_estado["hora_actual"] == "06:00":
-    cerradura_estado["seguro"] = False
-elif cerradura_estado["hora_actual"] == "22:00":
-    cerradura_estado["cerrado"] = True
-    cerradura_estado["seguro"] = True
 
 # Simulación de alerta por intento no autorizado
 if not cerradura_estado["cerrado"] and ingresado_pin not in cerradura_estado["usuarios"].values():
