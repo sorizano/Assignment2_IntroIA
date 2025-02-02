@@ -87,37 +87,45 @@ with col_right:
     
     ingresado_pin = st.text_input("Ingrese PIN para abrir", type="password", key="pin_input")
 
+# --------------------------
+# 📌 Botones alineados horizontalmente
+# --------------------------
+col_boton1, col_boton2, col_boton3 = st.columns(3)
+
 # ✅ **Botón para validar PIN y abrir la cerradura**
-if st.button("🔓 Abrir Casa"):
-    if ingresado_pin and usuario_seleccionado in usuarios_en_casa:
-        if ingresado_pin == usuarios[usuario_seleccionado]:
-            st.session_state["cerrado"] = False
-            st.session_state["seguro"] = False
-            st.session_state["forzado"] = False
-            st.session_state["pin_correcto"] = True  # ✅ Marcar PIN como correcto
-            st.success(f"✅ Cerradura abierta correctamente por {usuario_seleccionado}")
-        else:
-            st.session_state["pin_correcto"] = False
-            st.error("❌ PIN incorrecto")
-    elif ingresado_pin:
-        st.error("❌ Solo los usuarios en casa pueden ingresar su PIN.")
+with col_boton1:
+    if st.button("🔓 Abrir Casa"):
+        if ingresado_pin and usuario_seleccionado in usuarios_en_casa:
+            if ingresado_pin == usuarios[usuario_seleccionado]:
+                st.session_state["cerrado"] = False
+                st.session_state["seguro"] = False
+                st.session_state["forzado"] = False
+                st.session_state["pin_correcto"] = True  # ✅ Marcar PIN como correcto
+                st.success(f"✅ Cerradura abierta correctamente por {usuario_seleccionado}")
+            else:
+                st.session_state["pin_correcto"] = False
+                st.error("❌ PIN incorrecto")
+        elif ingresado_pin:
+            st.error("❌ Solo los usuarios en casa pueden ingresar su PIN.")
 
 # ✅ **Botón para cerrar la puerta (Solo si el PIN fue correcto)**
-if st.button("🔒 Cerrar Puerta", disabled=not st.session_state["pin_correcto"]):
-    st.session_state["cerrado"] = True
-    st.session_state["seguro"] = True  # ✅ Al cerrar la puerta, el seguro se cierra también
-    st.session_state["pin_correcto"] = False  # Resetear validación del PIN
-    st.warning("🚪 La puerta ha sido cerrada.")
+with col_boton2:
+    if st.button("🔒 Cerrar Puerta", disabled=not st.session_state["pin_correcto"]):
+        st.session_state["cerrado"] = True
+        st.session_state["seguro"] = False  # ✅ Mantener el seguro abierto al cerrar
+        st.session_state["pin_correcto"] = False  # Resetear validación del PIN
+        st.warning("🚪 La puerta ha sido cerrada, pero el seguro sigue abierto.")
 
 # 🔓 **Botón para Forzar Apertura Manual**
-if st.button("🔓 Forzar Apertura"):
-    st.session_state["cerrado"] = False
-    st.session_state["seguro"] = False
-    st.session_state["forzado"] = True
-    st.markdown(
-        "<h3 style='text-align: center; color: red;'>⚠️ ¡Alerta! Cerradura y seguro forzados. Se ha enviado un mensaje al administrador.</h3>",
-        unsafe_allow_html=True
-    )
+with col_boton3:
+    if st.button("🔓 Forzar Apertura"):
+        st.session_state["cerrado"] = False
+        st.session_state["seguro"] = False
+        st.session_state["forzado"] = True
+        st.markdown(
+            "<h3 style='text-align: center; color: red;'>⚠️ ¡Alerta! Cerradura y seguro forzados. Se ha enviado un mensaje al administrador.</h3>",
+            unsafe_allow_html=True
+        )
 
 # --------------------------
 # 📌 Estado de la cerradura
