@@ -1,7 +1,7 @@
 import streamlit as st
 from datetime import datetime
 import json
-import time  # Importar para manejar la espera de 10 segundos
+import time
 
 st.set_page_config(layout="wide")
 
@@ -16,6 +16,8 @@ if "hora_actual" not in st.session_state:
     st.session_state["hora_actual"] = datetime.now().strftime("%H:%M")
 if "ubicaciones_usuarios" not in st.session_state:
     st.session_state["ubicaciones_usuarios"] = {}
+if "temporizador" not in st.session_state:
+    st.session_state["temporizador"] = None
 
 # Función para cargar usuarios predefinidos
 def cargar_usuarios():
@@ -86,20 +88,21 @@ if ingresado_pin and usuario_seleccionado in usuarios_en_casa:
         st.session_state["cerrado"] = False
         st.session_state["seguro"] = False
         st.session_state["forzado"] = False
+        st.session_state["temporizador"] = time.time()  # Iniciar temporizador
         st.success(f"✅ Cerradura abierta correctamente por {usuario_seleccionado}")
-        
-        # Esperar 10 segundos antes de cerrar automáticamente
-        time.sleep(10)
-        
-        # Se vuelve a cerrar automáticamente
-        st.session_state["cerrado"] = True
-        st.session_state["seguro"] = True
-        st.warning("⏳ Cerradura cerrada automáticamente después de 10 segundos.")
-        st.rerun()
     else:
         st.error("❌ PIN incorrecto")
 elif ingresado_pin:
     st.error("❌ Solo los usuarios en casa pueden ingresar su PIN.")
+
+# Control de tiempo para cerrar automáticamente después de 10 segundos
+if st.session_state["temporizador"]:
+    tiempo_transcurrido = time.time() - st.session_state["temporizador"]
+    if tiempo_transcurrido >= 10:
+        st.session_state["cerrado"] = True
+        st.session_state["seguro"] = True
+        st.session_state["temporizador"] = None  # Resetear temporizador
+        st.warning("⏳ Cerradura cerrada automáticamente después de 10 segundos.")
 
 # Evaluación en función de la hora y ubicación (si no se usó PIN)
 elif not st.session_state["forzado"]:
@@ -121,6 +124,7 @@ if st.button("🔓 Forzar Apertura"):
     st.session_state["cerrado"] = False
     st.session_state["seguro"] = False
     st.session_state["forzado"] = True
+    st.session_state["temporizador"] = time.time()  # Iniciar temporizador al forzar apertura
     st.markdown(
         "<h3 style='text-align: center; color: red;'>⚠️ ¡Alerta! Cerradura y seguro forzados. Se ha enviado un mensaje al administrador.</h3>",
         unsafe_allow_html=True
