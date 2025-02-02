@@ -1,7 +1,6 @@
 import streamlit as st
 from datetime import datetime
 import json
-import time
 
 st.set_page_config(layout="wide")
 
@@ -16,8 +15,6 @@ if "hora_actual" not in st.session_state:
     st.session_state["hora_actual"] = datetime.now().strftime("%H:%M")
 if "ubicaciones_usuarios" not in st.session_state:
     st.session_state["ubicaciones_usuarios"] = {}
-if "temporizador" not in st.session_state:
-    st.session_state["temporizador"] = None  # ⏳ Se guarda el momento en que se abrió
 
 # 📌 Función para cargar usuarios predefinidos
 def cargar_usuarios():
@@ -82,48 +79,24 @@ with col_right:
     
     ingresado_pin = st.text_input("Ingrese PIN para abrir", type="password", key="pin_input")
 
-# ✅ Evaluación de apertura con PIN
-if ingresado_pin and usuario_seleccionado in usuarios_en_casa:
-    if ingresado_pin == usuarios[usuario_seleccionado]:
-        st.session_state["cerrado"] = False
-        st.session_state["seguro"] = False
-        st.session_state["forzado"] = False
-        st.session_state["temporizador"] = time.time()  # ⏳ Guardamos el momento en que se abrió
-        st.success(f"✅ Cerradura abierta correctamente por {usuario_seleccionado}")
-    else:
-        st.error("❌ PIN incorrecto")
-elif ingresado_pin:
-    st.error("❌ Solo los usuarios en casa pueden ingresar su PIN.")
+    # 🔓 **Botón Abrir Casa**
+    if st.button("🔓 Abrir Casa"):
+        if ingresado_pin and usuario_seleccionado in usuarios_en_casa:
+            if ingresado_pin == usuarios[usuario_seleccionado]:
+                st.session_state["cerrado"] = False
+                st.session_state["seguro"] = False
+                st.session_state["forzado"] = False
+                st.success(f"✅ Cerradura abierta correctamente por {usuario_seleccionado}")
+            else:
+                st.error("❌ PIN incorrecto")
+        else:
+            st.error("❌ Solo los usuarios en casa pueden ingresar su PIN.")
 
-# ⏳ **Control de tiempo para cerrar automáticamente después de 10 segundos**
-if st.session_state["temporizador"]:
-    tiempo_transcurrido = time.time() - st.session_state["temporizador"]
-
-    # 🔍 Mostrar el tiempo transcurrido en pantalla para depuración
-    st.write(f"⏳ Tiempo transcurrido desde la apertura: {tiempo_transcurrido:.2f} segundos")
-
-    # 🔄 Si el tiempo aún es 0.00, forzar una actualización para empezar a contar
-    if tiempo_transcurrido < 0.5:  # Si es menor a medio segundo, recargar la app
-        st.rerun()
-
-    # 🔒 Cerrar la cerradura automáticamente después de 10 segundos
-    if tiempo_transcurrido >= 10:
-        st.session_state["cerrado"] = True
-        st.session_state["seguro"] = True
-        st.session_state["temporizador"] = None  # Resetear temporizador
-        st.warning("⏳ Cerradura cerrada automáticamente después de 10 segundos.")
-        st.rerun()  # 🔄 Forzar actualización
-
-# 🔓 **Botón para Forzar Apertura Manual**
-if st.button("🔓 Forzar Apertura"):
-    st.session_state["cerrado"] = False
-    st.session_state["seguro"] = False
-    st.session_state["forzado"] = True
-    st.session_state["temporizador"] = time.time()  # ⏳ Iniciar temporizador al forzar apertura
-    st.markdown(
-        "<h3 style='text-align: center; color: red;'>⚠️ ¡Alerta! Cerradura y seguro forzados. Se ha enviado un mensaje al administrador.</h3>",
-        unsafe_allow_html=True
-    )
+# 🔒 **Botón Cerrar Puerta** (Solo se habilita si la puerta está abierta)
+if st.button("🔒 Cerrar Puerta", disabled=st.session_state["cerrado"]):
+    st.session_state["cerrado"] = True
+    st.session_state["seguro"] = True
+    st.success("🔒 Cerradura cerrada manualmente.")
 
 # --------------------------
 # 📌 Estado de la cerradura
