@@ -42,6 +42,15 @@ st.title("Simulación de Cerradura Digital Inteligente")
 hora_editable = st.sidebar.time_input("Selecciona la hora", datetime.strptime(st.session_state["hora_actual"], "%H:%M").time())
 st.session_state["hora_actual"] = hora_editable.strftime("%H:%M")
 
+# Evaluación de cierre y seguro según la hora (Prioridad Alta, pero ejecutada DESPUÉS de forzar apertura)
+hora_actual_horas = int(st.session_state["hora_actual"].split(":")[0])
+if 22 <= hora_actual_horas or hora_actual_horas < 6:
+    st.session_state["cerrado"] = True
+    st.session_state["seguro"] = True
+    st.session_state["forzado"] = False  # Reset de forzado si cambia la hora a este rango
+else:
+    st.session_state["cerrado"] = False  # Después de las 6 am la cerradura debe estar abierta automáticamente
+
 # Estado de la cerradura en dos columnas
 col_estado1, col_estado2 = st.columns(2)
 with col_estado1:
@@ -67,16 +76,6 @@ if st.button("Forzar Apertura"):
     <h3 style='text-align: center; color: red;'>⚠️ ¡Alerta! Cerradura y seguro forzados. Se ha enviado un mensaje al administrador.</h3>
     """, unsafe_allow_html=True)
     st.rerun()
-
-# Evaluación de cierre y seguro según la hora (se ejecuta después del botón de forzar apertura)
-hora_actual_horas = int(st.session_state["hora_actual"].split(":")[0])
-if 22 <= hora_actual_horas or hora_actual_horas < 6:
-    if not st.session_state["forzado"]:  # Solo aplicar si no ha sido forzado
-        st.session_state["cerrado"] = True
-        st.session_state["seguro"] = True
-else:
-    if not st.session_state["forzado"]:
-        st.session_state["cerrado"] = False  # Después de las 6 am la cerradura debe estar abierta automáticamente
 
 col1, col2 = st.columns(2)
 
