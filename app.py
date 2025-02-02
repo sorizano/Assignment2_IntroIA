@@ -15,7 +15,8 @@ cerradura_estado = {
         "Cel_father": 0,
         "Cel_son": 0
     },
-    "hora_actual": datetime.now().strftime("%H:%M")
+    "hora_actual": datetime.now().strftime("%H:%M"),
+    "forzado": False  # Indica si la apertura fue forzada
 }
 
 # Cargar usuarios desde un archivo JSON
@@ -52,19 +53,15 @@ hora_actual_horas = int(cerradura_estado["hora_actual"].split(":")[0])
 if 22 <= hora_actual_horas or hora_actual_horas < 6:
     cerradura_estado["cerrado"] = True
     cerradura_estado["seguro"] = True
-else:
-    cerradura_estado["cerrado"] = False
-    cerradura_estado["seguro"] = False
+    cerradura_estado["forzado"] = False  # Reset de forzado si cambia la hora a este rango
 
-# Simulación de alerta por intento no autorizado
-top_alert = ""
-if cerradura_estado["cerrado"] and cerradura_estado["seguro"]:
-    top_alert = """
+# Simulación de alerta por intento no autorizado (cuando ambos están abiertos y fue por forzado)
+if not cerradura_estado["cerrado"] and not cerradura_estado["seguro"] and cerradura_estado["forzado"]:
+    st.markdown("""
     <h2 style='text-align: center; color: red; font-weight: bold;'>
     ¡Alerta! Intento de apertura no autorizado se ha reportado al Administrador
     </h2>
-    """
-    st.markdown(top_alert, unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 # Estado de la cerradura en dos columnas
 col_estado1, col_estado2 = st.columns(2)
@@ -105,6 +102,7 @@ with col2:
     if ingresado_pin in cerradura_estado["usuarios"].values() and not (22 <= hora_actual_horas or hora_actual_horas < 6):
         cerradura_estado["cerrado"] = False
         cerradura_estado["seguro"] = False
+        cerradura_estado["forzado"] = False  # No se considera forzado si se ingresó correctamente
         st.success("Cerradura abierta correctamente")
     elif ingresado_pin:
         st.error("PIN incorrecto o no se puede abrir en este horario")
@@ -113,9 +111,11 @@ with col3:
     st.header("Forzar Apertura")
     if st.button("Forzar Apertura de Cerradura") and not (22 <= hora_actual_horas or hora_actual_horas < 6):
         cerradura_estado["cerrado"] = False
+        cerradura_estado["forzado"] = True
         st.warning("Cerradura forzada manualmente")
     if st.button("Forzar Apertura de Seguro") and not (22 <= hora_actual_horas or hora_actual_horas < 6):
         cerradura_estado["seguro"] = False
+        cerradura_estado["forzado"] = True
         st.warning("Seguro forzado manualmente")
 
 st.subheader("Registro de Estado")
