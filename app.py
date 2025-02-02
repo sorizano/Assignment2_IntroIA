@@ -2,8 +2,12 @@ import streamlit as st
 from datetime import datetime
 import json
 import time
+from streamlit_autorefresh import st_autorefresh  # Importar autorefresh
 
 st.set_page_config(layout="wide")
+
+# 🔄 Refrescar la app automáticamente cada 1 segundo
+st_autorefresh(interval=1000, key="autorefresh")
 
 # Inicialización del estado en sesión
 if "cerrado" not in st.session_state:
@@ -17,7 +21,7 @@ if "hora_actual" not in st.session_state:
 if "ubicaciones_usuarios" not in st.session_state:
     st.session_state["ubicaciones_usuarios"] = {}
 if "temporizador" not in st.session_state:
-    st.session_state["temporizador"] = None
+    st.session_state["temporizador"] = None  # Asegurar que se inicializa
 
 # Función para cargar usuarios predefinidos
 def cargar_usuarios():
@@ -95,29 +99,16 @@ if ingresado_pin and usuario_seleccionado in usuarios_en_casa:
 elif ingresado_pin:
     st.error("❌ Solo los usuarios en casa pueden ingresar su PIN.")
 
-# Control de tiempo para cerrar automáticamente después de 10 segundos
+# 🔄 **Verificar si han pasado 10 segundos para cerrar automáticamente**
 if st.session_state["temporizador"]:
     tiempo_transcurrido = time.time() - st.session_state["temporizador"]
+    st.write(f"🕒 Tiempo transcurrido: {tiempo_transcurrido:.2f} segundos")  # Debug para ver el tiempo
+
     if tiempo_transcurrido >= 10:
         st.session_state["cerrado"] = True
         st.session_state["seguro"] = True
         st.session_state["temporizador"] = None  # Resetear temporizador
         st.warning("⏳ Cerradura cerrada automáticamente después de 10 segundos.")
-
-# Evaluación en función de la hora y ubicación (si no se usó PIN)
-elif not st.session_state["forzado"]:
-    hora_actual_horas = int(st.session_state["hora_actual"].split(":")[0])
-    
-    if 22 <= hora_actual_horas or hora_actual_horas < 6:
-        st.session_state["cerrado"] = True
-        st.session_state["seguro"] = True
-    else:
-        if min(distancias) >= 1.5:
-            st.session_state["cerrado"] = True
-            st.session_state["seguro"] = True
-        else:
-            st.session_state["cerrado"] = True
-            st.session_state["seguro"] = False
 
 # Botón para Forzar Apertura Manual
 if st.button("🔓 Forzar Apertura"):
